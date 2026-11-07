@@ -6,6 +6,17 @@
 <meta name="robots" content="noindex, nofollow">
 <title>Klubové oblečení | BK Ludgeřovice</title>
 <link rel="icon" href="logo.png">
+<meta name="description" content="Objednávky klubového oblečení pro členy BK Ludgeřovice: dresy, mikiny, čepice a doplňky.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="BK Ludgeřovice">
+<meta property="og:title" content="Klubové oblečení BK Ludgeřovice">
+<meta property="og:description" content="Dresy, mikiny, čepice a doplňky pro členy. Objednej online, vyzvedni a zaplať v klubu.">
+<meta property="og:url" content="https://eshop.bkludgerovice.cz/">
+<meta property="og:image" content="https://eshop.bkludgerovice.cz/fotky/og-eshop.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="cs_CZ">
+<meta name="twitter:card" content="summary_large_image">
 <style>
 :root{
   --bg:#f5f3f2; --surface:#ffffff; --fg:#141414; --muted:#5d5857; --line:#e3dedc;
@@ -56,6 +67,8 @@ header p{margin:4px 0 0;color:var(--muted);font-size:15px}
 .card h2{margin:0;font-size:16px;line-height:1.25;font-weight:700}
 .avail{font-size:13px;color:var(--muted)}
 .avail.out{color:var(--accent)}
+.perk{justify-self:start;display:inline-block;margin-top:2px;padding:3px 9px;border-radius:999px;background:var(--accent-soft);color:var(--fg);font-size:12.5px;font-weight:700;line-height:1.3}
+.info .perk{font-size:14px;padding:5px 12px}
 .skel{aspect-ratio:4/6;border-radius:12px;background:linear-gradient(90deg,var(--surface),var(--line),var(--surface));background-size:200% 100%;animation:sk 1.4s linear infinite}
 @keyframes sk{to{background-position:-200% 0}}
 .empty{grid-column:1/-1;padding:32px 16px;text-align:center;background:var(--surface);border:1px dashed var(--line);border-radius:12px}
@@ -157,8 +170,17 @@ h3.sec{margin:6px 0 10px;font-size:17px;font-style:italic;text-transform:upperca
 .bar .sum b{font-size:18px;display:block}
 .toast{position:fixed;left:50%;bottom:calc(92px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);opacity:0;background:var(--fg);color:var(--bg);padding:11px 16px;border-radius:10px;font-size:15px;transition:.2s;z-index:20;pointer-events:none;max-width:calc(100% - 32px);text-align:center}
 .toast.show{opacity:1;transform:translate(-50%,0)}
-footer{margin:40px 0 0;color:var(--muted);font-size:14px}
+footer{margin:48px 0 0;padding:22px 0 8px;border-top:1px solid var(--line);color:var(--muted);font-size:14px;display:grid;gap:14px}
+footer h2{margin:0;font-size:17px;font-style:italic;text-transform:uppercase;color:var(--fg)}
+footer p{margin:0}
 footer a{color:inherit}
+.contact{display:flex;flex-wrap:wrap;gap:10px}
+.contact a{display:inline-flex;align-items:center;gap:8px;min-height:46px;padding:10px 16px;border-radius:10px;border:2px solid var(--line);background:var(--surface);color:var(--fg);font-weight:700;text-decoration:none}
+.contact a svg{width:20px;height:20px;flex:none}
+.contact a.wa{border-color:#25d366}
+.contact a.wa svg{color:#1faa52}
+.contact a.tel svg,.contact a.mail svg{color:var(--accent)}
+.foot-meta{display:flex;flex-wrap:wrap;gap:6px 18px}
 </style>
 </head>
 <body>
@@ -170,10 +192,15 @@ footer a{color:inherit}
       <p>Objednávky pro členy BK Ludgeřovice</p>
     </div>
   </header>
-  <p class="note" id="pickup">Bez poštovného a platby online. Objednávku vyzvedneš a zaplatíš osobně v klubu.</p>
+  <p class="note"><b>E-shop je určen pouze pro členy BK Ludgeřovice.</b> <span id="pickup">Bez poštovného a platby online. Objednávku vyzvedneš a zaplatíš osobně v klubu.</span></p>
   <main id="grid" class="grid" aria-live="polite"></main>
   <footer>
-    <p>Dotazy k objednávkám: <a href="mailto:david.bibrlik@bkludgerovice.cz">david.bibrlik@bkludgerovice.cz</a></p>
+    <h2>Dotazy k objednávkám</h2>
+    <div class="contact" id="contact"></div>
+    <div class="foot-meta">
+      <span>© <span id="year"></span> BK Ludgeřovice</span>
+      <a id="clubWeb" href="#" target="_blank" rel="noopener"></a>
+    </div>
   </footer>
 </div>
 
@@ -203,6 +230,19 @@ footer a{color:inherit}
    Sem vlož URL webové aplikace z Apps Scriptu (končí na /exec).
    Když zůstane prázdné, stránka běží v ukázkovém režimu s vymyšlenými daty. */
 const API_URL = 'https://script.google.com/macros/s/AKfycby5VtEbGepNRl82-KPO7MVrowx0MjCfXJ10_NMXl-3EKRUC97CckM-65TrmO_FkPukI/exec';
+
+/* ════════ KONTAKTY V PATIČCE ════════
+   Tlačítko, které má prázdnou hodnotu, se nezobrazí.
+   phone: číslo pro „Zavolat“, např. '+420 777 123 456'
+   whatsapp: číslo pro WhatsApp, např. '+420 777 123 456' (může být stejné jako phone) */
+const CONTACT = {
+  email: 'david.bibrlik@bkludgerovice.cz',
+  phone: '',
+  whatsapp: '',
+  whatsappText: 'Ahoj, mám dotaz ke klubovému oblečení.',
+  web: 'https://bkludgerovice.cz',
+  webLabel: 'bkludgerovice.cz'
+};
 
 const CART_KEY = 'bkl-obleceni-kosik-v1';
 const CONTACT_KEY = 'bkl-obleceni-kontakt-v1';
@@ -249,10 +289,13 @@ const inCart = (id, cut, size) => S.cart.filter(l => l.id === id && cutOf(l) ===
 // střihy produktu v pořadí ze Skladu (prázdné = produkt bez střihu)
 const cutsOf = p => [...new Set(p.sizes.map(cutOf).filter(Boolean))];
 const variant = (cut, size) => cut ? `${cut}, ${size}` : size;
+// max. kusů jedné varianty v objednávce (nastavuje backend, CONFIG.MAX_QTY_PER_LINE)
+const MAXQ = () => S.catalog?.maxQty || 20;
+const lineMax = (id, cut, size) => Math.min(stockOf(id, cut, size), MAXQ());
 
 async function init(){
   $('#grid').innerHTML = Array.from({length: 4}, () => '<div class="skel"></div>').join('');
-  if (DEMO) $('#pickup').insertAdjacentHTML('afterend', '<p class="note demo">Ukázkový režim: produkty jsou vymyšlené a nic se neodesílá. Doplň API_URL v index.html.</p>');
+  if (DEMO) $('#pickup').closest('.note').insertAdjacentHTML('afterend', '<p class="note demo">Ukázkový režim: produkty jsou vymyšlené a nic se neodesílá. Doplň API_URL v index.html.</p>');
   try {
     const data = await apiCatalog();
     if (!data.ok) throw new Error(data.message || 'Chyba serveru');
@@ -268,7 +311,7 @@ function setCatalog(data){
   if (data.pickupText) $('#pickup').textContent = 'Bez poštovného a platby online. ' + data.pickupText;
   // srovnání košíku se skladem
   const before = JSON.stringify(S.cart);
-  S.cart = S.cart.filter(l => product(l.id)).map(l => ({...l, qty: Math.min(l.qty, stockOf(l.id, l.cut, l.size))})).filter(l => l.qty > 0);
+  S.cart = S.cart.filter(l => product(l.id)).map(l => ({...l, qty: Math.min(l.qty, lineMax(l.id, l.cut, l.size))})).filter(l => l.qty > 0);
   if (JSON.stringify(S.cart) !== before) save(CART_KEY, S.cart);
   renderGrid(); renderBar();
 }
@@ -287,7 +330,7 @@ function renderGrid(){
       : '<span class="avail out">Teď není skladem</span>';
     return `<button class="card" type="button" data-id="${esc(p.id)}">
       <div class="ph">${photoHTML(p)}<span class="price"><span>${money(p.price)}</span></span></div>
-      <div class="txt"><h2>${esc(p.name)}</h2>${avail}</div></button>`;
+      <div class="txt"><h2>${esc(p.name)}</h2>${p.badge ? `<span class="perk">${esc(p.badge)}</span>` : ''}${avail}</div></button>`;
   }).join('');
 }
 $('#grid').addEventListener('click', e => { const c = e.target.closest('.card'); if (c) openDetail(c.dataset.id); });
@@ -324,13 +367,15 @@ function renderDetail(){
   const sel = S.size != null && S.cut != null ? sizesForCut().find(s => s.size === S.size) : null;
   const what = sel ? (S.cut ? `${S.cut}, velikost ${sel.size}` : `Velikost ${sel.size}`) : '';
   if (sel){
-    const free = sel.qty - inCart(p.id, S.cut, sel.size);
-    if (sel.qty <= 0) status = `<p class="status out"><b>${esc(what)}: teď není skladem.</b> Dej nám vědět, že o ni máš zájem, a ozveme se, až ji naskladníme.</p>`;
+    const have = inCart(p.id, S.cut, sel.size);
+    const free = Math.min(sel.qty, MAXQ()) - have;
+    if (sel.qty > 0 && free <= 0 && have >= MAXQ() && sel.qty > have) status = `<p class="status">V košíku máš ${have} ks. Najednou lze objednat nejvýš ${MAXQ()} ks jedné velikosti.</p>`;
+    else if (sel.qty <= 0) status = `<p class="status out"><b>${esc(what)}: teď není skladem.</b> Dej nám vědět, že o ni máš zájem, a ozveme se, až ji naskladníme.</p>`;
     else if (free <= 0) status = `<p class="status">Všechny kusy (${esc(what.charAt(0).toLowerCase() + what.slice(1))}) už máš v košíku.</p>`;
     else status = `<p class="status">Skladem ${sel.qty} ks.</p>`;
   }
 
-  const qtyMax = sel ? (sel.qty > 0 ? sel.qty - inCart(p.id, S.cut, sel.size) : 20) : 1;
+  const qtyMax = sel ? (sel.qty > 0 ? Math.min(sel.qty, MAXQ()) - inCart(p.id, S.cut, sel.size) : MAXQ()) : 1;
   S.qty = Math.max(1, Math.min(S.qty, Math.max(1, qtyMax)));
   const qtyBlock = sel && qtyMax > 0 ? `<div><span class="lbl" id="qtyLbl">Počet kusů</span>
     <div class="stepper" role="group" aria-labelledby="qtyLbl"><button type="button" data-q="-1" aria-label="Ubrat" ${S.qty <= 1 ? 'disabled' : ''}>−</button><output aria-live="polite">${S.qty}</output><button type="button" data-q="1" aria-label="Přidat" ${S.qty >= qtyMax ? 'disabled' : ''}>+</button></div></div>` : '';
@@ -353,6 +398,7 @@ function renderDetail(){
     <div class="ph">${photoHTML(p, false)}</div>
     <div class="info">
       <p class="big">${money(p.price)}</p>
+      ${p.badge ? `<p class="perk">${esc(p.badge)}</p>` : ''}
       ${p.description ? `<p class="desc">${esc(p.description)}</p>` : ''}
       ${cuts.length ? `<div><span class="lbl" id="cutLbl">Střih</span><div class="chips" role="group" aria-labelledby="cutLbl">${cutChips}</div></div>` : ''}
       ${!p.sizes.length ? '<p class="status out">Tento produkt teď nemá zadané velikosti.</p>'
@@ -476,7 +522,7 @@ function renderCart(){
   const c = load(CONTACT_KEY, {});
   const prev = $('#orderForm') ? Object.fromEntries(new FormData($('#orderForm'))) : null;
   $('#cartBody').innerHTML = `<ul class="lines">${S.cart.map((l, i) => {
-      const p = product(l.id); const max = stockOf(l.id, l.cut, l.size);
+      const p = product(l.id); const max = lineMax(l.id, l.cut, l.size);
       return `<li class="line"><div class="th">${photoHTML(p)}</div>
         <div><div class="nm">${esc(p.name)}</div><div class="meta">${l.cut ? esc(l.cut) + ', v' : 'V'}elikost ${esc(l.size)}, ${money(p.price)}/ks</div>
           <div class="ctl"><div class="stepper sm" role="group" aria-label="Počet kusů: ${esc(p.name)} ${esc(variant(l.cut, l.size))}">
@@ -494,7 +540,7 @@ function renderCart(){
       ${S.catalog.requiresCode ? `<div class="field"><label for="oCode">Kód pro členy</label><input id="oCode" name="code" required autocomplete="off" value="${esc(c.code || '')}"></div>` : ''}
       <div class="hp" aria-hidden="true"><label>Web<input name="website" tabindex="-1" autocomplete="off"></label></div>
       ${S.formError ? `<div class="err" role="alert">${S.formError}</div>` : ''}
-      <p class="fine">Údaje použijeme jen k vyřízení objednávky.</p>
+      <p class="fine">Objednávat mohou pouze členové BK Ludgeřovice. Údaje použijeme jen k vyřízení objednávky.</p>
     </form>`;
   if (prev) for (const [k, v] of Object.entries(prev)) if ($('#orderForm').elements[k]) $('#orderForm').elements[k].value = v;
   $('#cartFoot').innerHTML = `<div class="sum">Celkem k úhradě v klubu<b>${money(cartTotal())}</b></div>
@@ -503,7 +549,7 @@ function renderCart(){
 
 $('#dlgCart').addEventListener('click', e => {
   const d = e.target.closest('[data-d]');
-  if (d){ const l = S.cart[+d.dataset.line]; l.qty = Math.max(1, Math.min(stockOf(l.id, l.cut, l.size), l.qty + Number(d.dataset.d))); save(CART_KEY, S.cart); renderCart(); renderBar(); return; }
+  if (d){ const l = S.cart[+d.dataset.line]; l.qty = Math.max(1, Math.min(lineMax(l.id, l.cut, l.size), l.qty + Number(d.dataset.d))); save(CART_KEY, S.cart); renderCart(); renderBar(); return; }
   const r = e.target.closest('[data-remove]');
   if (r){ S.cart.splice(+r.dataset.remove, 1); save(CART_KEY, S.cart); renderCart(); renderBar(); return; }
   if (e.target.closest('[data-act="order"]')) submitOrder();
@@ -575,10 +621,10 @@ function demoChartImg(){
 }
 function demoCatalog(){
   DEMO_DATA ??= {
-    ok: true, currency: 'Kč', requiresCode: false,
+    ok: true, currency: 'Kč', requiresCode: false, maxQty: 3,
     pickupText: 'Objednávku si vyzvedneš a zaplatíš osobně v klubu. Ozveme se ti, až bude připravená.',
     products: [
-      {id: 'DEMO-DRES', name: 'Ukázkový dres', description: 'Vymyšlený produkt pro náhled stránky. Má pánský a dámský střih.', price: 100, photo: '', sizeChart: 'Velikost;S;M;L;XL\nObvod hrudníku (cm);88–96;96–104;104–112;112–120',
+      {id: 'DEMO-DRES', name: 'Ukázkový dres', description: 'Vymyšlený produkt pro náhled stránky. Má pánský a dámský střih.', price: 100, badge: 'Klub doplácí 250 Kč', photo: '', sizeChart: 'Velikost;S;M;L;XL\nObvod hrudníku (cm);88–96;96–104;104–112;112–120',
         sizes: [{cut:'Pánský',size:'S',qty:0},{cut:'Pánský',size:'M',qty:3},{cut:'Pánský',size:'L',qty:1},{cut:'Pánský',size:'XL',qty:0},
                 {cut:'Dámský',size:'XS',qty:2},{cut:'Dámský',size:'S',qty:1},{cut:'Dámský',size:'M',qty:0}]},
       {id: 'DEMO-TRIKO-NW', name: 'Ukázkové triko Nordic walking', description: 'Vymyšlený produkt: pánský, dámský i unisex střih.', price: 80, photo: '', sizeChart: '',
@@ -599,6 +645,27 @@ function demoPost(p){
   }, 700));
 }
 
+function renderFooter(){
+  const ico = {
+    mail: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>',
+    tel: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M5 3h4l2 5-2.5 1.5a11 11 0 0 0 6 6L16 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 5a2 2 0 0 1 2-2z"/></svg>',
+    wa: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.6.8-.8 1-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.3-.4.8-1.4.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.9 11.9 0 0 0 4.6 4c1.7.7 2.4.8 3.2.7a2.8 2.8 0 0 0 1.8-1.3 2.3 2.3 0 0 0 .2-1.3c-.1-.1-.2-.2-.5-.3z"/></svg>'
+  };
+  const digits = n => String(n || '').replace(/[^\d+]/g, '');
+  const parts = [];
+  if (CONTACT.email) parts.push(`<a class="mail" href="mailto:${esc(CONTACT.email)}">${ico.mail}${esc(CONTACT.email)}</a>`);
+  if (CONTACT.phone) parts.push(`<a class="tel" href="tel:${esc(digits(CONTACT.phone))}">${ico.tel}Zavolat</a>`);
+  if (CONTACT.whatsapp) {
+    const wa = digits(CONTACT.whatsapp).replace(/^\+/, '').replace(/^00/, '');
+    parts.push(`<a class="wa" href="https://wa.me/${esc(wa)}?text=${encodeURIComponent(CONTACT.whatsappText || '')}" target="_blank" rel="noopener">${ico.wa}WhatsApp</a>`);
+  }
+  $('#contact').innerHTML = parts.join('');
+  $('#year').textContent = new Date().getFullYear();
+  const w = $('#clubWeb');
+  if (CONTACT.web) { w.href = CONTACT.web; w.textContent = CONTACT.webLabel || CONTACT.web; } else w.remove();
+}
+
+renderFooter();
 init();
 </script>
 </body>
