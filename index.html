@@ -1,0 +1,605 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Klubové oblečení | BK Ludgeřovice</title>
+<link rel="icon" href="logo.png">
+<style>
+:root{
+  --bg:#f5f3f2; --surface:#ffffff; --fg:#141414; --muted:#5d5857; --line:#e3dedc;
+  --accent:#db131e; --accent-ink:#ffffff; --accent-soft:#fbe3e4; --ok:#1b7f3b; --photo:#ece8e6;
+  --font:Arial,"Helvetica Neue",Helvetica,sans-serif;
+  color-scheme:light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121111; --surface:#1d1b1b; --fg:#f3f1f0; --muted:#aaa3a1; --line:#332f2e;
+  --accent:#e8242f; --accent-ink:#ffffff; --accent-soft:#3a1517; --ok:#4cc574; --photo:#2a2726; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121111; --surface:#1d1b1b; --fg:#f3f1f0; --muted:#aaa3a1; --line:#332f2e;
+  --accent:#e8242f; --accent-ink:#ffffff; --accent-soft:#3a1517; --ok:#4cc574; --photo:#2a2726; color-scheme:dark}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+html:has(dialog[open]){overflow:hidden}
+html,body{background:var(--bg);color:var(--fg)}
+body{margin:0;font-family:var(--font);font-size:16px;line-height:1.45;padding:0 16px calc(104px + env(safe-area-inset-bottom,0px))}
+img{max-width:100%}
+button{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.wrap{max-width:1080px;margin:0 auto}
+
+/* Hlavička */
+header{display:flex;align-items:center;gap:14px;padding:18px 0 10px}
+header img{height:56px;width:auto}
+header h1{margin:0;font-size:clamp(22px,5vw,32px);font-style:italic;font-weight:700;text-transform:uppercase;line-height:1.05;letter-spacing:.005em}
+header p{margin:4px 0 0;color:var(--muted);font-size:15px}
+.note{margin:6px 0 22px;padding:10px 14px;border-left:4px solid var(--accent);background:var(--surface);border-radius:0 8px 8px 0;font-size:15px;max-width:68ch}
+.demo{background:var(--accent-soft);border-left-color:var(--accent)}
+
+/* Mřížka produktů */
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+@media (min-width:720px){.grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}}
+@media (min-width:1000px){.grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.card{appearance:none;display:flex;flex-direction:column;text-align:left;padding:0;border:1px solid var(--line);background:var(--surface);border-radius:12px;overflow:hidden;cursor:pointer;min-width:0}
+.card:hover .ph img{transform:scale(1.03)}
+.ph{position:relative;aspect-ratio:4/5;background:var(--photo);overflow:hidden}
+.ph img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .3s ease}
+.ph .noimg{position:absolute;inset:0;display:grid;place-items:center;color:var(--muted)}
+.ph .noimg svg{width:42%;height:auto;opacity:.45}
+.price{position:absolute;left:10px;bottom:10px;background:var(--accent);color:var(--accent-ink);font-weight:700;font-style:italic;font-size:15px;padding:5px 11px 5px 9px;transform:skewX(-10deg);border-radius:3px;box-shadow:0 2px 0 rgba(0,0,0,.18)}
+.price span{display:inline-block;transform:skewX(10deg)}
+.card .txt{padding:10px 12px 12px;display:grid;gap:3px}
+.card h2{margin:0;font-size:16px;line-height:1.25;font-weight:700}
+.avail{font-size:13px;color:var(--muted)}
+.avail.out{color:var(--accent)}
+.skel{aspect-ratio:4/6;border-radius:12px;background:linear-gradient(90deg,var(--surface),var(--line),var(--surface));background-size:200% 100%;animation:sk 1.4s linear infinite}
+@keyframes sk{to{background-position:-200% 0}}
+.empty{grid-column:1/-1;padding:32px 16px;text-align:center;background:var(--surface);border:1px dashed var(--line);border-radius:12px}
+
+/* Tlačítka a ovládací prvky */
+.btn{appearance:none;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:50px;padding:12px 20px;border-radius:10px;border:2px solid var(--accent);background:var(--accent);color:var(--accent-ink);font-weight:700;font-style:italic;font-size:16px;cursor:pointer;text-decoration:none}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.btn.ghost{background:transparent;color:var(--fg);border-color:var(--line)}
+.btn.wide{width:100%}
+.linkbtn{appearance:none;background:none;border:0;padding:6px 0;color:var(--accent);font-weight:700;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{appearance:none;min-width:54px;min-height:46px;padding:8px 14px;border-radius:999px;border:2px solid var(--line);background:var(--bg);font-weight:700;font-style:italic;font-size:15px;cursor:pointer;display:inline-flex;flex-direction:column;align-items:center;line-height:1.1}
+.chip small{font-size:11px;font-style:normal;font-weight:400;color:var(--muted)}
+.chip.out{border-style:dashed;color:var(--muted)}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.chip[aria-pressed="true"] small{color:var(--accent-ink)}
+.stepper{display:inline-flex;align-items:center;border:2px solid var(--line);border-radius:10px;overflow:hidden;background:var(--bg)}
+.stepper button{appearance:none;border:0;background:none;width:44px;height:44px;font-size:22px;font-weight:700;cursor:pointer}
+.stepper button[disabled]{opacity:.3;cursor:not-allowed}
+.stepper output{min-width:34px;text-align:center;font-weight:700}
+.stepper.sm button{width:38px;height:38px;font-size:20px}
+
+/* Dialogy */
+dialog{border:0;padding:0;background:var(--surface);color:var(--fg);width:min(860px,calc(100% - 32px));max-height:min(92dvh,920px);border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+dialog[open]{display:flex;flex-direction:column}
+dialog::backdrop{background:rgba(10,8,8,.55)}
+@media (max-width:640px){
+  dialog{width:100%;max-width:100%;margin:auto 0 0;border-radius:16px 16px 0 0;max-height:94dvh}
+  dialog[open]{animation:up .22s ease-out}
+}
+@keyframes up{from{transform:translateY(40px);opacity:.4}}
+@media (prefers-reduced-motion:reduce){dialog[open]{animation:none}.skel{animation:none}.ph img{transition:none}}
+.dlg-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border-bottom:1px solid var(--line)}
+.dlg-head h2{margin:0;font-size:19px;font-style:italic;text-transform:uppercase;line-height:1.15}
+.x{appearance:none;border:0;background:var(--bg);width:42px;height:42px;border-radius:50%;font-size:24px;line-height:1;cursor:pointer;flex:none}
+.dlg-body{overflow:auto;padding:16px;flex:1;overscroll-behavior:contain}
+.dlg-foot{padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);display:flex;gap:12px;align-items:center;flex-wrap:wrap;background:var(--surface)}
+.dlg-foot .btn{flex:1 1 220px}
+.dlg-foot .sum{flex:1 1 auto;font-size:15px}
+.dlg-foot .sum b{font-size:19px;display:block}
+
+/* Detail produktu */
+.detail{display:grid;gap:18px}
+@media (min-width:700px){.detail{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;align-items:start}}
+.detail .ph{border-radius:12px;aspect-ratio:4/5}
+@media (max-width:699px){.detail .ph{aspect-ratio:1/1}}
+.detail .ph img{object-fit:contain;background:var(--photo)}
+.info{display:grid;gap:14px;min-width:0;grid-template-columns:minmax(0,1fr)}
+.info>*{min-width:0}
+.info .big{font-size:24px;font-weight:700;font-style:italic}
+.info p{margin:0}
+.desc{color:var(--muted);white-space:pre-line}
+.lbl{font-weight:700;font-size:14px;margin-bottom:8px;display:block}
+.status{padding:10px 12px;border-radius:8px;background:var(--bg);font-size:15px}
+.status.out{background:var(--accent-soft)}
+details.sizes{border:1px solid var(--line);border-radius:10px;padding:0 12px}
+details.sizes summary{cursor:pointer;font-weight:700;padding:12px 0;list-style-position:inside}
+.tbl{overflow-x:auto;padding-bottom:12px}
+.tbl table{border-collapse:collapse;font-size:14px;min-width:100%}
+.tbl th,.tbl td{border:1px solid var(--line);padding:6px 9px;text-align:center;white-space:nowrap}
+.tbl thead th{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.tbl tbody th{text-align:left;background:var(--bg)}
+.tbl .pre{white-space:pre-line;margin:0}
+
+/* Formuláře */
+.form{display:grid;gap:12px}
+.field{display:grid;gap:5px}
+.field label{font-weight:700;font-size:14px}
+.field label span{font-weight:400;color:var(--muted)}
+.field input,.field textarea{width:100%;font:16px var(--font);color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:11px 12px;min-height:48px}
+.field textarea{min-height:84px;resize:vertical}
+.two{display:grid;gap:12px}
+@media (min-width:560px){.two{grid-template-columns:1fr 1fr}}
+.hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+.err{padding:10px 12px;border-radius:8px;background:var(--accent-soft);color:var(--fg);border-left:4px solid var(--accent);font-size:15px}
+.err ul{margin:6px 0 0;padding-left:20px}
+.fine{font-size:13px;color:var(--muted);margin:0}
+
+/* Košík */
+.lines{list-style:none;margin:0 0 18px;padding:0;display:grid;gap:10px}
+.line{display:grid;grid-template-columns:64px 1fr auto;gap:12px;align-items:center;padding:10px;border:1px solid var(--line);border-radius:10px}
+.line .th{width:64px;height:76px;border-radius:6px;background:var(--photo);overflow:hidden}
+.line .th img{width:100%;height:100%;object-fit:cover}
+.line .nm{font-weight:700;line-height:1.25}
+.line .meta{font-size:14px;color:var(--muted)}
+.line .ctl{display:flex;align-items:center;gap:10px;margin-top:6px;flex-wrap:wrap}
+.line .tot{font-weight:700;white-space:nowrap;align-self:start}
+h3.sec{margin:6px 0 10px;font-size:17px;font-style:italic;text-transform:uppercase}
+.done{text-align:center;padding:24px 8px;display:grid;gap:12px;justify-items:center}
+.done .ok{width:64px;height:64px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font-size:34px;font-weight:700}
+.done .no{font-size:28px;font-weight:700;font-style:italic;letter-spacing:.02em}
+.done p{margin:0;max-width:44ch}
+
+/* Spodní lišta košíku */
+.bar{position:fixed;left:0;right:0;bottom:0;padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));background:var(--surface);border-top:1px solid var(--line);box-shadow:0 -6px 20px rgba(0,0,0,.08);transform:translateY(110%);transition:transform .25s ease;z-index:5}
+.bar.show{transform:none}
+.bar .in{max-width:1080px;margin:0 auto;display:flex;align-items:center;gap:14px}
+.bar .sum{flex:1;font-size:15px;line-height:1.25}
+.bar .sum b{font-size:18px;display:block}
+.toast{position:fixed;left:50%;bottom:calc(92px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);opacity:0;background:var(--fg);color:var(--bg);padding:11px 16px;border-radius:10px;font-size:15px;transition:.2s;z-index:20;pointer-events:none;max-width:calc(100% - 32px);text-align:center}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+footer{margin:40px 0 0;color:var(--muted);font-size:14px}
+footer a{color:inherit}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <img src="logo.png" alt="Logo Běžeckého klubu Ludgeřovice">
+    <div>
+      <h1>Klubové oblečení</h1>
+      <p>Objednávky pro členy BK Ludgeřovice</p>
+    </div>
+  </header>
+  <p class="note" id="pickup">Bez poštovného a platby online. Objednávku vyzvedneš a zaplatíš osobně v klubu.</p>
+  <main id="grid" class="grid" aria-live="polite"></main>
+  <footer>
+    <p>Dotazy k objednávkám: <a href="mailto:david.bibrlik@bkludgerovice.cz">david.bibrlik@bkludgerovice.cz</a></p>
+  </footer>
+</div>
+
+<div class="bar" id="bar" aria-hidden="true">
+  <div class="in">
+    <div class="sum" id="barSum"></div>
+    <button class="btn" id="barBtn" type="button">Zobrazit košík</button>
+  </div>
+</div>
+
+<dialog id="dlgDetail" aria-labelledby="detailTitle">
+  <div class="dlg-head"><h2 id="detailTitle"></h2><button class="x" type="button" data-close aria-label="Zavřít">×</button></div>
+  <div class="dlg-body" id="detailBody"></div>
+  <div class="dlg-foot" id="detailFoot"></div>
+</dialog>
+
+<dialog id="dlgCart" aria-labelledby="cartTitle">
+  <div class="dlg-head"><h2 id="cartTitle">Košík</h2><button class="x" type="button" data-close aria-label="Zavřít">×</button></div>
+  <div class="dlg-body" id="cartBody"></div>
+  <div class="dlg-foot" id="cartFoot"></div>
+</dialog>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* ════════ NASTAVENÍ ════════
+   Sem vlož URL webové aplikace z Apps Scriptu (končí na /exec).
+   Když zůstane prázdné, stránka běží v ukázkovém režimu s vymyšlenými daty. */
+const API_URL = '';
+
+const CART_KEY = 'bkl-obleceni-kosik-v1';
+const CONTACT_KEY = 'bkl-obleceni-kontakt-v1';
+const DEMO = !API_URL;
+
+const S = {
+  catalog: null,
+  cart: load(CART_KEY, []),
+  current: null, cut: '', size: null, qty: 1, interest: false,
+  busy: false, cartStep: 'cart', orderDone: null, formError: '', detailError: ''
+};
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const money = n => new Intl.NumberFormat('cs-CZ', {maximumFractionDigits: 0}).format(n) + '\u00a0Kč';
+function load(k, d){ try { const v = JSON.parse(localStorage.getItem(k)); return v ?? d; } catch(e){ return d; } }
+function save(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} }
+
+const PLACEHOLDER = '<div class="noimg"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round" aria-hidden="true"><path d="M22 8l-12 7-6 14 9 4 3-6v31h32V27l3 6 9-4-6-14-12-7c-1 5-5 8-10 8s-9-3-10-8z"/></svg></div>';
+const photoHTML = (p, lazy=true) => p.photo
+  ? `<img src="${esc(p.photo)}" alt="${esc(p.name)}" ${lazy ? 'loading="lazy"' : ''} onerror="this.replaceWith(document.createRange().createContextualFragment(PLACEHOLDER))">`
+  : PLACEHOLDER;
+
+/* ════════ API ════════ */
+async function apiCatalog(){
+  if (DEMO) return demoCatalog();
+  const r = await fetch(API_URL + '?action=catalog&t=' + Date.now());
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  return r.json();
+}
+async function apiPost(payload){
+  if (DEMO) return demoPost(payload);
+  // Content-Type text/plain = jednoduchý požadavek bez CORS preflight, který Apps Script neumí
+  const r = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  return r.json();
+}
+
+/* ════════ Katalog ════════ */
+const product = id => S.catalog?.products.find(p => p.id === id);
+const cutOf = x => x.cut || '';
+const stockOf = (id, cut, size) => product(id)?.sizes.find(s => cutOf(s) === (cut || '') && s.size === size)?.qty ?? 0;
+const inCart = (id, cut, size) => S.cart.filter(l => l.id === id && cutOf(l) === (cut || '') && l.size === size).reduce((a, l) => a + l.qty, 0);
+// střihy produktu v pořadí ze Skladu (prázdné = produkt bez střihu)
+const cutsOf = p => [...new Set(p.sizes.map(cutOf).filter(Boolean))];
+const variant = (cut, size) => cut ? `${cut}, ${size}` : size;
+
+async function init(){
+  $('#grid').innerHTML = Array.from({length: 4}, () => '<div class="skel"></div>').join('');
+  if (DEMO) $('#pickup').insertAdjacentHTML('afterend', '<p class="note demo">Ukázkový režim: produkty jsou vymyšlené a nic se neodesílá. Doplň API_URL v index.html.</p>');
+  try {
+    const data = await apiCatalog();
+    if (!data.ok) throw new Error(data.message || 'Chyba serveru');
+    setCatalog(data);
+  } catch (e) {
+    $('#grid').innerHTML = `<div class="empty"><p><b>Nabídku se nepodařilo načíst.</b></p><p>Zkontroluj připojení k internetu a zkus to znovu.</p><button class="btn" type="button" onclick="init()">Načíst znovu</button></div>`;
+    console.error(e);
+  }
+}
+
+function setCatalog(data){
+  S.catalog = data;
+  if (data.pickupText) $('#pickup').textContent = 'Bez poštovného a platby online. ' + data.pickupText;
+  // srovnání košíku se skladem
+  const before = JSON.stringify(S.cart);
+  S.cart = S.cart.filter(l => product(l.id)).map(l => ({...l, qty: Math.min(l.qty, stockOf(l.id, l.cut, l.size))})).filter(l => l.qty > 0);
+  if (JSON.stringify(S.cart) !== before) save(CART_KEY, S.cart);
+  renderGrid(); renderBar();
+}
+
+function renderGrid(){
+  const ps = S.catalog.products;
+  if (!ps.length){ $('#grid').innerHTML = '<div class="empty"><p><b>Teď tu nic není.</b></p><p>Nabídku brzy doplníme.</p></div>'; return; }
+  $('#grid').innerHTML = ps.map(p => {
+    const total = p.sizes.reduce((a, s) => a + s.qty, 0);
+    const cuts = cutsOf(p);
+    const inStock = cuts.length
+      ? cuts.map(c => { const z = p.sizes.filter(s => cutOf(s) === c && s.qty > 0).map(s => esc(s.size)); const lab = c === 'UNI' ? 'UNI' : esc(c.toLowerCase()); return !z.length ? '' : (z.length === 1 && z[0] === esc(c)) ? lab : `${lab} ${z.join(', ')}`; }).filter(Boolean).join('; ')
+      : (p.sizes.length > 1 ? p.sizes.filter(s => s.qty > 0).map(s => esc(s.size)).join(', ') : '');
+    const avail = !p.sizes.length ? '<span class="avail out">Připravujeme</span>'
+      : total > 0 ? `<span class="avail">Skladem ${inStock}</span>`
+      : '<span class="avail out">Teď není skladem</span>';
+    return `<button class="card" type="button" data-id="${esc(p.id)}">
+      <div class="ph">${photoHTML(p)}<span class="price"><span>${money(p.price)}</span></span></div>
+      <div class="txt"><h2>${esc(p.name)}</h2>${avail}</div></button>`;
+  }).join('');
+}
+$('#grid').addEventListener('click', e => { const c = e.target.closest('.card'); if (c) openDetail(c.dataset.id); });
+
+/* ════════ Detail ════════ */
+function openDetail(id){
+  const p = product(id); if (!p) return;
+  S.current = p; S.interest = false; S.qty = 1; S.detailError = '';
+  const cuts = cutsOf(p);
+  S.cut = cuts.length === 1 ? cuts[0] : cuts.length ? null : '';
+  autoSize();
+  renderDetail(); openDlg('#dlgDetail');
+}
+
+// velikosti pro zvolený střih; když je jen jedna, vybere se sama
+const sizesForCut = () => S.cut == null ? [] : S.current.sizes.filter(s => cutOf(s) === S.cut);
+function autoSize(){ const z = sizesForCut(); S.size = z.length === 1 ? z[0].size : null; }
+
+function renderDetail(){
+  const p = S.current;
+  $('#detailTitle').textContent = p.name;
+  const cuts = cutsOf(p);
+  const cutChips = cuts.map(c => {
+    const any = p.sizes.some(s => cutOf(s) === c && s.qty > 0);
+    return `<button type="button" class="chip ${any ? '' : 'out'}" data-cut="${esc(c)}" aria-pressed="${c === S.cut}">${esc(c)}${any ? '' : '<small>zájem</small>'}</button>`;
+  }).join('');
+  const chips = sizesForCut().map(s => {
+    const free = s.qty - inCart(p.id, S.cut, s.size);
+    const sub = s.qty <= 0 ? 'zájem' : free <= 0 ? 'v košíku' : s.qty <= 2 ? `posl. ${s.qty}` : '';
+    return `<button type="button" class="chip ${s.qty <= 0 ? 'out' : ''}" data-size="${esc(s.size)}" aria-pressed="${s.size === S.size}">${esc(s.size)}${sub ? `<small>${sub}</small>` : ''}</button>`;
+  }).join('');
+
+  let status = '';
+  const sel = S.size != null && S.cut != null ? sizesForCut().find(s => s.size === S.size) : null;
+  const what = sel ? (S.cut ? `${S.cut}, velikost ${sel.size}` : `Velikost ${sel.size}`) : '';
+  if (sel){
+    const free = sel.qty - inCart(p.id, S.cut, sel.size);
+    if (sel.qty <= 0) status = `<p class="status out"><b>${esc(what)}: teď není skladem.</b> Dej nám vědět, že o ni máš zájem, a ozveme se, až ji naskladníme.</p>`;
+    else if (free <= 0) status = `<p class="status">Všechny kusy (${esc(what.charAt(0).toLowerCase() + what.slice(1))}) už máš v košíku.</p>`;
+    else status = `<p class="status">Skladem ${sel.qty} ks.</p>`;
+  }
+
+  const qtyMax = sel ? (sel.qty > 0 ? sel.qty - inCart(p.id, S.cut, sel.size) : 20) : 1;
+  S.qty = Math.max(1, Math.min(S.qty, Math.max(1, qtyMax)));
+  const qtyBlock = sel && qtyMax > 0 ? `<div><span class="lbl" id="qtyLbl">Počet kusů</span>
+    <div class="stepper" role="group" aria-labelledby="qtyLbl"><button type="button" data-q="-1" aria-label="Ubrat" ${S.qty <= 1 ? 'disabled' : ''}>−</button><output aria-live="polite">${S.qty}</output><button type="button" data-q="1" aria-label="Přidat" ${S.qty >= qtyMax ? 'disabled' : ''}>+</button></div></div>` : '';
+
+  const c = load(CONTACT_KEY, {});
+  const interestForm = sel && sel.qty <= 0 && S.interest ? `<form class="form" id="interestForm" novalidate>
+      <h3 class="sec">Kontakt pro zájem</h3>
+      <div class="field"><label for="iName">Jméno a příjmení</label><input id="iName" name="name" autocomplete="name" required minlength="2" value="${esc(c.name || '')}"></div>
+      <div class="two">
+        <div class="field"><label for="iEmail">E-mail</label><input id="iEmail" name="email" type="email" autocomplete="email" inputmode="email" required value="${esc(c.email || '')}"></div>
+        <div class="field"><label for="iPhone">Telefon <span>(nepovinné)</span></label><input id="iPhone" name="phone" type="tel" autocomplete="tel" inputmode="tel" value="${esc(c.phone || '')}"></div>
+      </div>
+      <div class="field"><label for="iNote">Poznámka <span>(nepovinné)</span></label><textarea id="iNote" name="note" maxlength="1000"></textarea></div>
+      ${S.catalog.requiresCode ? `<div class="field"><label for="iCode">Kód pro členy</label><input id="iCode" name="code" required autocomplete="off" value="${esc(c.code || '')}"></div>` : ''}
+      <div class="hp" aria-hidden="true"><label>Web<input name="website" tabindex="-1" autocomplete="off"></label></div>
+      ${S.detailError ? `<div class="err" role="alert">${esc(S.detailError)}</div>` : ''}
+    </form>` : '';
+
+  $('#detailBody').innerHTML = `<div class="detail">
+    <div class="ph">${photoHTML(p, false)}</div>
+    <div class="info">
+      <p class="big">${money(p.price)}</p>
+      ${p.description ? `<p class="desc">${esc(p.description)}</p>` : ''}
+      ${cuts.length ? `<div><span class="lbl" id="cutLbl">Střih</span><div class="chips" role="group" aria-labelledby="cutLbl">${cutChips}</div></div>` : ''}
+      ${!p.sizes.length ? '<p class="status out">Tento produkt teď nemá zadané velikosti.</p>'
+        : S.cut == null ? ''
+        : `<div><span class="lbl" id="sizeLbl">Velikost</span><div class="chips" role="group" aria-labelledby="sizeLbl">${chips}</div></div>`}
+      ${status}
+      ${qtyBlock}
+      ${p.sizeChart ? `<details class="sizes"><summary>Velikostní tabulka</summary><div class="tbl">${sizeChartHTML(p.sizeChart)}</div></details>` : ''}
+      ${interestForm}
+    </div></div>`;
+
+  let foot = '';
+  if (!sel) foot = `<button class="btn wide" type="button" disabled>${!p.sizes.length ? 'Nedostupné' : S.cut == null ? 'Vyber střih' : 'Vyber velikost'}</button>`;
+  else if (sel.qty <= 0) foot = S.interest
+    ? `<button class="btn ghost" type="button" data-act="cancelInterest">Zpět</button><button class="btn" type="button" data-act="sendInterest" ${S.busy ? 'disabled' : ''}>${S.busy ? 'Odesílám…' : 'Odeslat zájem'}</button>`
+    : `<button class="btn wide" type="button" data-act="interest">Mám zájem</button>`;
+  else if (qtyMax <= 0) foot = `<button class="btn wide" type="button" data-act="openCart">Zobrazit košík</button>`;
+  else foot = `<button class="btn wide" type="button" data-act="add">Přidat do košíku – ${money(p.price * S.qty)}</button>`;
+  $('#detailFoot').innerHTML = foot;
+}
+
+function sizeChartHTML(v){
+  v = String(v || '').trim();
+  if (/^data:image\//i.test(v)) return `<img src="${esc(v)}" alt="Velikostní tabulka">`;
+  if (/^https?:\/\//i.test(v)){
+    if (/\.(png|jpe?g|webp|gif|svg)(\?|#|$)/i.test(v) || /drive\.google\.com\/thumbnail|googleusercontent\.com/i.test(v))
+      return `<img src="${esc(v)}" alt="Velikostní tabulka" loading="lazy">`;
+    return `<p><a href="${esc(v)}" target="_blank" rel="noopener">Otevřít velikostní tabulku</a></p>`;
+  }
+  const lines = v.split(/\r?\n/).filter(l => l.trim());
+  const sep = [';', '\t', '|'].find(s => lines.some(l => l.includes(s)));
+  if (!sep) return `<p class="pre">${esc(v)}</p>`;
+  const rows = lines.map(l => l.split(sep).map(c => c.trim()));
+  const [h, ...b] = rows;
+  return `<table><thead><tr>${h.map(c => `<th scope="col">${esc(c)}</th>`).join('')}</tr></thead><tbody>${
+    b.map(r => `<tr>${r.map((c, i) => i === 0 ? `<th scope="row">${esc(c)}</th>` : `<td>${esc(c)}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+}
+
+$('#dlgDetail').addEventListener('click', async e => {
+  const cchip = e.target.closest('.chip[data-cut]');
+  if (cchip){ S.cut = cchip.dataset.cut; autoSize(); S.interest = false; S.qty = 1; S.detailError = ''; renderDetail(); return; }
+  const chip = e.target.closest('.chip[data-size]');
+  if (chip){ S.size = chip.dataset.size; S.interest = false; S.qty = 1; S.detailError = ''; renderDetail(); return; }
+  const q = e.target.closest('[data-q]');
+  if (q){ S.qty += Number(q.dataset.q); renderDetail(); return; }
+  const a = e.target.closest('[data-act]')?.dataset.act;
+  if (a === 'add') addToCart();
+  if (a === 'interest'){ S.interest = true; renderDetail(); $('#iName')?.focus(); }
+  if (a === 'cancelInterest'){ S.interest = false; S.detailError = ''; renderDetail(); }
+  if (a === 'sendInterest') sendInterest();
+  if (a === 'openCart'){ closeDlg('#dlgDetail'); openCart(); }
+});
+
+function addToCart(){
+  const p = S.current, size = S.size, cut = S.cut || '';
+  const line = S.cart.find(l => l.id === p.id && cutOf(l) === cut && l.size === size);
+  if (line) line.qty += S.qty; else S.cart.push({id: p.id, cut, size, qty: S.qty});
+  save(CART_KEY, S.cart);
+  closeDlg('#dlgDetail');
+  toast(`Přidáno do košíku: ${p.name}, ${variant(cut, size)}, ${S.qty} ks`);
+  renderBar();
+}
+
+async function sendInterest(){
+  const f = $('#interestForm');
+  if (!f.reportValidity()) return;
+  const d = Object.fromEntries(new FormData(f));
+  S.busy = true; S.detailError = ''; renderDetailKeep(f);
+  try {
+    const res = await apiPost({ action: 'interest', item: {id: S.current.id, cut: S.cut || '', size: S.size, qty: S.qty},
+      contact: {name: d.name, email: d.email, phone: d.phone, note: d.note}, accessCode: d.code, website: d.website });
+    if (!res.ok) throw Object.assign(new Error(res.message), {user: true});
+    rememberContact(d);
+    closeDlg('#dlgDetail');
+    toast('Díky! Zájem jsme zaznamenali a potvrzení ti přijde e-mailem.');
+  } catch (e) {
+    S.detailError = e.user ? e.message : 'Zájem se nepodařilo odeslat. Zkontroluj připojení a zkus to znovu.';
+    renderDetailKeep(f);
+  } finally { S.busy = false; if ($('#dlgDetail').open) renderDetailKeep($('#interestForm')); }
+}
+// překreslí detail, ale zachová rozepsaný formulář
+function renderDetailKeep(f){
+  const d = f ? Object.fromEntries(new FormData(f)) : null;
+  renderDetail();
+  const nf = $('#interestForm');
+  if (d && nf) for (const [k, v] of Object.entries(d)) if (nf.elements[k]) nf.elements[k].value = v;
+}
+
+/* ════════ Košík ════════ */
+function cartTotal(){ return S.cart.reduce((a, l) => a + (product(l.id)?.price || 0) * l.qty, 0); }
+function cartCount(){ return S.cart.reduce((a, l) => a + l.qty, 0); }
+const ks = n => n + '\u00a0ks';
+
+function renderBar(){
+  const n = cartCount();
+  $('#bar').classList.toggle('show', n > 0);
+  $('#bar').setAttribute('aria-hidden', n > 0 ? 'false' : 'true');
+  $('#barSum').innerHTML = `<b>${money(cartTotal())}</b>V košíku ${ks(n)}`;
+}
+$('#barBtn').addEventListener('click', openCart);
+
+function openCart(){ S.cartStep = 'cart'; S.formError = ''; renderCart(); openDlg('#dlgCart'); }
+
+function renderCart(){
+  if (S.cartStep === 'done'){
+    const o = S.orderDone;
+    $('#cartTitle').textContent = 'Objednávka odeslaná';
+    $('#cartBody').innerHTML = `<div class="done"><div class="ok" aria-hidden="true">✓</div>
+      <p>Číslo objednávky</p><p class="no">${esc(o.orderNo)}</p>
+      <p>Potvrzení jsme poslali na <b>${esc(o.email)}</b>. ${esc(S.catalog.pickupText || '')}</p>
+      ${DEMO ? '<p class="fine">Ukázkový režim: nic se ve skutečnosti neodeslalo.</p>' : ''}</div>`;
+    $('#cartFoot').innerHTML = '<button class="btn wide" type="button" data-close>Hotovo</button>';
+    return;
+  }
+  $('#cartTitle').textContent = 'Košík';
+  if (!S.cart.length){
+    $('#cartBody').innerHTML = `<div class="done"><p><b>Košík je prázdný.</b></p><p>Vyber si něco z nabídky klubového oblečení.</p></div>`;
+    $('#cartFoot').innerHTML = '<button class="btn wide" type="button" data-close>Zpět na nabídku</button>';
+    return;
+  }
+  const c = load(CONTACT_KEY, {});
+  const prev = $('#orderForm') ? Object.fromEntries(new FormData($('#orderForm'))) : null;
+  $('#cartBody').innerHTML = `<ul class="lines">${S.cart.map((l, i) => {
+      const p = product(l.id); const max = stockOf(l.id, l.cut, l.size);
+      return `<li class="line"><div class="th">${photoHTML(p)}</div>
+        <div><div class="nm">${esc(p.name)}</div><div class="meta">${l.cut ? esc(l.cut) + ', v' : 'V'}elikost ${esc(l.size)}, ${money(p.price)}/ks</div>
+          <div class="ctl"><div class="stepper sm" role="group" aria-label="Počet kusů: ${esc(p.name)} ${esc(variant(l.cut, l.size))}">
+            <button type="button" data-line="${i}" data-d="-1" aria-label="Ubrat" ${l.qty <= 1 ? 'disabled' : ''}>−</button><output>${l.qty}</output><button type="button" data-line="${i}" data-d="1" aria-label="Přidat" ${l.qty >= max ? 'disabled' : ''}>+</button></div>
+            <button type="button" class="linkbtn" data-remove="${i}">Odebrat</button></div></div>
+        <div class="tot">${money(p.price * l.qty)}</div></li>`; }).join('')}</ul>
+    <form class="form" id="orderForm" novalidate>
+      <h3 class="sec">Tvoje údaje</h3>
+      <div class="field"><label for="oName">Jméno a příjmení</label><input id="oName" name="name" autocomplete="name" required minlength="2" value="${esc(c.name || '')}"></div>
+      <div class="two">
+        <div class="field"><label for="oEmail">E-mail</label><input id="oEmail" name="email" type="email" autocomplete="email" inputmode="email" required value="${esc(c.email || '')}"></div>
+        <div class="field"><label for="oPhone">Telefon</label><input id="oPhone" name="phone" type="tel" autocomplete="tel" inputmode="tel" required pattern="[+0-9 ]{9,}" value="${esc(c.phone || '')}"></div>
+      </div>
+      <div class="field"><label for="oNote">Poznámka <span>(nepovinné)</span></label><textarea id="oNote" name="note" maxlength="1000" placeholder="Např. kdy se zastavíš v klubu"></textarea></div>
+      ${S.catalog.requiresCode ? `<div class="field"><label for="oCode">Kód pro členy</label><input id="oCode" name="code" required autocomplete="off" value="${esc(c.code || '')}"></div>` : ''}
+      <div class="hp" aria-hidden="true"><label>Web<input name="website" tabindex="-1" autocomplete="off"></label></div>
+      ${S.formError ? `<div class="err" role="alert">${S.formError}</div>` : ''}
+      <p class="fine">Údaje použijeme jen k vyřízení objednávky.</p>
+    </form>`;
+  if (prev) for (const [k, v] of Object.entries(prev)) if ($('#orderForm').elements[k]) $('#orderForm').elements[k].value = v;
+  $('#cartFoot').innerHTML = `<div class="sum">Celkem k úhradě v klubu<b>${money(cartTotal())}</b></div>
+    <button class="btn" type="button" data-act="order" ${S.busy ? 'disabled' : ''}>${S.busy ? 'Odesílám…' : 'Odeslat objednávku'}</button>`;
+}
+
+$('#dlgCart').addEventListener('click', e => {
+  const d = e.target.closest('[data-d]');
+  if (d){ const l = S.cart[+d.dataset.line]; l.qty = Math.max(1, Math.min(stockOf(l.id, l.cut, l.size), l.qty + Number(d.dataset.d))); save(CART_KEY, S.cart); renderCart(); renderBar(); return; }
+  const r = e.target.closest('[data-remove]');
+  if (r){ S.cart.splice(+r.dataset.remove, 1); save(CART_KEY, S.cart); renderCart(); renderBar(); return; }
+  if (e.target.closest('[data-act="order"]')) submitOrder();
+});
+
+async function submitOrder(){
+  const f = $('#orderForm');
+  if (!f.reportValidity()) return;
+  const d = Object.fromEntries(new FormData(f));
+  S.busy = true; S.formError = ''; renderCart();
+  try {
+    const res = await apiPost({ action: 'order', items: S.cart.map(l => ({id: l.id, cut: cutOf(l), size: l.size, qty: l.qty})),
+      contact: {name: d.name, email: d.email, phone: d.phone, note: d.note}, accessCode: d.code, website: d.website });
+    if (res.ok){
+      rememberContact(d);
+      S.orderDone = {orderNo: res.orderNo, email: d.email};
+      S.cart = []; save(CART_KEY, S.cart);
+      S.cartStep = 'done';
+      refreshCatalogQuietly();
+    } else if (res.error === 'stock' && res.catalog){
+      const msgs = res.problems.map(pr => {
+        const name = product(pr.id)?.name || pr.name || pr.id;
+        return `<li>${esc(name)}, ${esc(variant(pr.cut, pr.size))}: ${pr.available > 0 ? `zbývá jen ${ks(pr.available)}` : 'už není skladem'}</li>`;
+      }).join('');
+      setCatalog(res.catalog);
+      S.formError = `<b>${esc(res.message)}</b><ul>${msgs}</ul>`;
+    } else {
+      S.formError = esc(res.message || 'Objednávku se nepodařilo odeslat.');
+    }
+  } catch (e) {
+    console.error(e);
+    S.formError = 'Objednávku se nepodařilo odeslat. Zkontroluj připojení a zkus to znovu. Pokud to nepůjde, napiš na david.bibrlik@bkludgerovice.cz.';
+  } finally {
+    S.busy = false; renderCart(); renderBar();
+    $('#cartBody').scrollTop = S.formError ? $('#cartBody').scrollHeight : 0;
+  }
+}
+
+async function refreshCatalogQuietly(){ try { const d = await apiCatalog(); if (d.ok) setCatalog(d); } catch(e){} }
+function rememberContact(d){ save(CONTACT_KEY, {name: d.name, email: d.email, phone: d.phone || load(CONTACT_KEY, {}).phone || '', code: d.code || ''}); }
+
+/* ════════ Dialogy a tlačítko Zpět na mobilu ════════ */
+let skipPop = false;
+function openDlg(sel){ const d = $(sel); if (d.open) return; d.showModal(); history.pushState({dlg: d.id}, ''); }
+function closeDlg(sel){ const d = $(sel); if (d.open) d.close(); }
+document.querySelectorAll('dialog').forEach(d => {
+  d.addEventListener('click', e => { if (e.target === d || e.target.closest('[data-close]')) d.close(); });
+  d.addEventListener('close', () => { if (history.state?.dlg === d.id){ skipPop = true; history.back(); } });
+});
+window.addEventListener('popstate', () => {
+  if (skipPop){ skipPop = false; return; }
+  document.querySelectorAll('dialog[open]').forEach(d => d.close());
+});
+
+let tt;
+function toast(msg){ const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(tt); tt = setTimeout(() => t.classList.remove('show'), 3200); }
+
+/* ════════ Ukázkový režim (jen když chybí API_URL) ════════ */
+let DEMO_DATA;
+// ukázkový obrázek velikostní tabulky (v ostrém provozu to bude odkaz na obrázek ze Sheetu)
+function demoChartImg(){
+  const rows = [['Velikost','S','M','L','XL'],['Délka (cm)','66','69','72','75'],['Šířka (cm)','50','53','56','59'],['Rukáv (cm)','61','62','63','64']];
+  const cw = [140,95,95,95,95], W = 520, H = 40 + rows.length * 40;
+  let s = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" font-family="Arial,sans-serif" font-size="16"><rect width="${W}" height="${H}" fill="#fff"/><text x="10" y="26" font-weight="700" font-style="italic" font-size="17" fill="#141414">UKÁZKOVÁ MIKINA – rozměry (obrázek)</text>`;
+  rows.forEach((r, i) => { let x = 0; r.forEach((c, j) => {
+    s += `<rect x="${x}" y="${40 + i * 40}" width="${cw[j]}" height="40" fill="${i === 0 ? '#db131e' : j === 0 ? '#f5f3f2' : '#fff'}" stroke="#e3dedc"/><text x="${x + cw[j] / 2}" y="${66 + i * 40}" text-anchor="middle" fill="${i === 0 ? '#fff' : '#141414'}" font-weight="${i === 0 || j === 0 ? 700 : 400}">${c}</text>`;
+    x += cw[j]; }); });
+  return 'data:image/svg+xml,' + encodeURIComponent(s + '</svg>');
+}
+function demoCatalog(){
+  DEMO_DATA ??= {
+    ok: true, currency: 'Kč', requiresCode: false,
+    pickupText: 'Objednávku si vyzvedneš a zaplatíš osobně v klubu. Ozveme se ti, až bude připravená.',
+    products: [
+      {id: 'DEMO-DRES', name: 'Ukázkový dres', description: 'Vymyšlený produkt pro náhled stránky. Má pánský a dámský střih.', price: 100, photo: '', sizeChart: 'Velikost;S;M;L;XL\nObvod hrudníku (cm);88–96;96–104;104–112;112–120',
+        sizes: [{cut:'Pánský',size:'S',qty:0},{cut:'Pánský',size:'M',qty:3},{cut:'Pánský',size:'L',qty:1},{cut:'Pánský',size:'XL',qty:0},
+                {cut:'Dámský',size:'XS',qty:2},{cut:'Dámský',size:'S',qty:1},{cut:'Dámský',size:'M',qty:0}]},
+      {id: 'DEMO-TRIKO-NW', name: 'Ukázkové triko Nordic walking', description: 'Vymyšlený produkt: pánský, dámský i unisex střih.', price: 80, photo: '', sizeChart: '',
+        sizes: [{cut:'Pánský',size:'M',qty:2},{cut:'Pánský',size:'L',qty:2},{cut:'Dámský',size:'S',qty:0},{cut:'Dámský',size:'M',qty:1},{cut:'UNI',size:'UNI',qty:4}]},
+      {id: 'DEMO-MIKINA', name: 'Ukázková mikina', description: 'Vymyšlený produkt pro náhled stránky.', price: 200, photo: '', sizeChart: demoChartImg(),
+        sizes: [{size:'M',qty:2},{size:'L',qty:2}]},
+      {id: 'DEMO-CEPICE', name: 'Ukázková čepice', description: '', price: 50, photo: '', sizeChart: '', sizes: [{size:'UNI',qty:5}]},
+      {id: 'DEMO-NAKRCNIK', name: 'Ukázkový nákrčník', description: '', price: 50, photo: '', sizeChart: '', sizes: [{size:'UNI',qty:0}]}
+    ]};
+  return new Promise(r => setTimeout(() => r(JSON.parse(JSON.stringify(DEMO_DATA))), 400));
+}
+function demoPost(p){
+  return new Promise(r => setTimeout(() => {
+    if (p.action === 'order'){
+      p.items.forEach(it => { const s = DEMO_DATA.products.find(x => x.id === it.id).sizes.find(s => cutOf(s) === it.cut && s.size === it.size); s.qty -= it.qty; });
+      r({ok: true, orderNo: 'BKL-' + new Date().getFullYear() + '-000'});
+    } else r({ok: true});
+  }, 700));
+}
+
+init();
+</script>
+</body>
+</html>
