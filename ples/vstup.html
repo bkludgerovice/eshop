@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Kontrola vstupenek – Ples BK Ludgeřovice</title>
+<style>
+:root{--bg:#f5f3f2;--surface:#fff;--fg:#141414;--muted:#5d5857;--line:#e3dedc;--accent:#db131e;--ok:#1e8a3c;--warn:#c27a00;
+  --font:Arial,"Helvetica Neue",Helvetica,sans-serif;color-scheme:light;box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121111;--surface:#1d1b1b;--fg:#f3f1f0;--muted:#aaa3a1;--line:#332f2e;--accent:#e8242f;--ok:#3bb862;--warn:#e0a020;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#121111;--surface:#1d1b1b;--fg:#f3f1f0;--muted:#aaa3a1;--line:#332f2e;--accent:#e8242f;--ok:#3bb862;--warn:#e0a020;color-scheme:dark}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.45 var(--font)}
+.wrap{max-width:520px;margin:0 auto;padding:18px 16px 40px}
+header{display:flex;gap:12px;align-items:center;margin-bottom:18px}
+header img{width:44px} header h1{font-size:22px;margin:0;font-weight:900}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:14px}
+label{display:grid;gap:4px;font-weight:700;font-size:15px;margin-bottom:12px}
+input{font:inherit;color:inherit;padding:12px;border:1.5px solid var(--line);border-radius:10px;background:var(--bg);width:100%}
+.btn{display:block;width:100%;padding:15px;border:0;border-radius:12px;background:var(--accent);color:#fff;font:900 18px var(--font);cursor:pointer}
+.btn.ghost{background:transparent;color:var(--fg);border:1.5px solid var(--line);font-weight:700;margin-top:10px}
+.status{font-size:28px;font-weight:900;padding:14px 16px;border-radius:12px;color:#fff;margin-bottom:14px}
+.status.ok{background:var(--ok)} .status.warn{background:var(--warn)} .status.bad{background:var(--accent)}
+dl{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:0 0 14px} dt{color:var(--muted)} dd{margin:0;font-weight:700}
+.err{color:var(--accent);min-height:1em;margin:6px 0 0;font-size:15px}
+.muted{color:var(--muted);font-size:14px}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header><img src="logo.png" alt=""><h1>Kontrola vstupenek</h1></header>
+  <div id="out"></div>
+  <div class="card">
+    <form id="find">
+      <label>Číslo rezervace (když QR nejde načíst)<input name="vs" inputmode="numeric" autocomplete="off"></label>
+      <button class="btn ghost" type="submit">Vyhledat</button>
+    </form>
+  </div>
+  <div class="card">
+    <form id="pinf">
+      <label>PIN pořadatele<input name="pin" type="password" inputmode="numeric" autocomplete="off"></label>
+      <button class="btn ghost" type="submit">Uložit PIN</button>
+      <p class="muted">PIN se uloží v tomto telefonu. QR kódy pak stačí načítat fotoaparátem.</p>
+    </form>
+  </div>
+</div>
+<script>
+const API_URL = 'https://script.google.com/macros/s/AKfycbx2rz2vdd3rARxcoGJbIHxiUaOIZpEirWnAt2GdAMeVamByGXtjs46ccCDcNb0kd7X1/exec';   // ← stejná adresa Apps Scriptu jako v index.html
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let pin=''; try{ pin=localStorage.getItem('bklPlesPin')||''; }catch(e){}
+$('#pinf').pin.value=pin;
+const code=new URLSearchParams(location.search).get('k')||'';
+let cur={code, vs:''};
+
+function show(html){ $('#out').innerHTML='<div class="card">'+html+'</div>'; }
+function render(j){
+  if(j.needPin){ show(`<p class="err">${esc(j.message)}</p><p class="muted">Zadejte PIN níže a načtěte kód znovu.</p>`); $('#pinf').pin.focus(); return; }
+  if(!j.ticket){ show(`<div class="status bad">${esc(j.message||'Chyba')}</div>`); return; }
+  const t=j.ticket;
+  let st, cls;
+  if(t.status==='Zrušeno'){ st='Zrušená rezervace'; cls='bad'; }
+  else if(t.status!=='Zaplaceno'){ st='Nezaplaceno'; cls='bad'; }
+  else if(t.checkin && !j.justNow){ st='Už odbaveno v '+t.checkin.split(' ').pop(); cls='warn'; }
+  else if(t.checkin){ st='Vstup povolen'; cls='ok'; }
+  else { st='Platná vstupenka'; cls='ok'; }
+  show(`<div class="status ${cls}" role="status">${esc(st)}</div>
+    <dl><dt>Jméno</dt><dd>${esc(t.name)}</dd><dt>Osob</dt><dd>${t.count}</dd><dt>Místa</dt><dd>${esc(t.seats)}</dd>
+    <dt>Večeře</dt><dd>${t.dinners}×</dd><dt>Rezervace</dt><dd>${esc(t.vs)}</dd></dl>
+    ${t.status==='Zaplaceno' && !t.checkin ? '<button class="btn" id="go">Odbavit '+t.count+' '+(t.count===1?'osobu':(t.count<5?'osoby':'osob'))+'</button>' : ''}
+    ${j.message && j.ok===false ? '<p class="err">'+esc(j.message)+'</p>':''}`);
+  const go=$('#go'); if(go) go.onclick=checkin;
+}
+async function lookup(){
+  if(!API_URL){ show('<p class="err">Stránka ještě není napojená na rezervační systém (chybí API_URL).</p>'); return; }
+  if(!cur.code && !cur.vs) return;
+  show('<p class="muted">Načítám…</p>');
+  try{
+    const q=new URLSearchParams({action:'ticket',pin}); if(cur.code) q.set('code',cur.code); if(cur.vs) q.set('vs',cur.vs);
+    render(await (await fetch(API_URL+'?'+q)).json());
+  }catch(e){ show('<p class="err">Spojení se nepodařilo. Zkontrolujte internet a zkuste to znovu.</p>'); }
+}
+async function checkin(){
+  $('#go').disabled=true; $('#go').textContent='Odbavuji…';
+  try{
+    const j=await (await fetch(API_URL,{method:'POST',body:JSON.stringify({action:'checkin',code:cur.code,vs:cur.vs,pin})})).json();
+    if(j.ok && !j.already) j.justNow=true;
+    render(j);
+  }catch(e){ show('<p class="err">Spojení se nepodařilo. Zkuste to znovu.</p>'); }
+}
+$('#pinf').onsubmit=e=>{ e.preventDefault(); pin=e.target.pin.value.trim(); try{localStorage.setItem('bklPlesPin',pin);}catch(x){} lookup(); };
+$('#find').onsubmit=e=>{ e.preventDefault(); cur={code:'',vs:e.target.vs.value.trim()}; lookup(); };
+if(code) lookup(); else show('<p class="muted">Načtěte fotoaparátem telefonu QR kód ze vstupenky, nebo zadejte číslo rezervace.</p>');
+</script>
+</body>
+</html>
