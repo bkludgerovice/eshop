@@ -23,6 +23,8 @@ input{font:inherit;color:inherit;padding:12px;border:1.5px solid var(--line);bor
 .btn.ghost{background:transparent;color:var(--fg);border:1.5px solid var(--line);font-weight:700;margin-top:10px}
 .status{font-size:28px;font-weight:900;padding:14px 16px;border-radius:12px;color:#fff;margin-bottom:14px}
 .status.ok{background:var(--ok)} .status.warn{background:var(--warn)} .status.bad{background:var(--accent)}
+.res{display:block;width:100%;text-align:left;background:var(--bg);border:1.5px solid var(--line);border-radius:12px;padding:12px 14px;margin:8px 0;font:inherit;color:inherit;cursor:pointer}
+.res b{display:block;font-size:18px}.res span{display:block;font-size:14px;color:var(--muted)}.res .st{font-weight:700}.res .st.ok{color:var(--ok)}.res .st.bad{color:var(--accent)}.res .st.warn{color:var(--warn)}
 dl{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:0 0 14px} dt{color:var(--muted)} dd{margin:0;font-weight:700}
 .err{color:var(--accent);min-height:1em;margin:6px 0 0;font-size:15px}
 .muted{color:var(--muted);font-size:14px}
@@ -35,7 +37,7 @@ dl{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:0 0 14px} dt{
   <div id="out"></div>
   <div class="card">
     <form id="find">
-      <label>Číslo rezervace (když QR nejde načíst)<input name="vs" inputmode="numeric" autocomplete="off"></label>
+      <label>Když QR nejde načíst: jméno, e-mail nebo číslo rezervace<input name="q" type="search" autocomplete="off" placeholder="např. Novák nebo 2701015"></label>
       <button class="btn ghost" type="submit">Vyhledat</button>
     </form>
   </div>
@@ -92,8 +94,22 @@ async function checkin(){
   }catch(e){ show('<p class="err">Spojení se nepodařilo. Zkuste to znovu.</p>'); }
 }
 $('#pinf').onsubmit=e=>{ e.preventDefault(); pin=e.target.pin.value.trim(); try{localStorage.setItem('bklPlesPin',pin);}catch(x){} lookup(); };
-$('#find').onsubmit=e=>{ e.preventDefault(); cur={code:'',vs:e.target.vs.value.trim()}; lookup(); };
-if(code) lookup(); else show('<p class="muted">Načtěte fotoaparátem telefonu QR kód ze vstupenky, nebo zadejte číslo rezervace.</p>');
+async function search(q){
+  if(!API_URL){ show('<p class="err">Stránka ještě není napojená na rezervační systém (chybí API_URL).</p>'); return; }
+  show('<p class="muted">Hledám…</p>');
+  try{
+    const j=await (await fetch(API_URL+'?'+new URLSearchParams({action:'ticket',q,pin}))).json();
+    if(j.needPin || !j.ok){ render(j.needPin?j:{message:j.message}); return; }
+    if(!j.results.length){ show('<div class="status bad">Nic nenalezeno</div><p class="muted">Zkuste jen příjmení bez diakritiky, nebo e-mail.</p>'); return; }
+    const stInfo=t=> t.status==='Zrušeno'?['bad','Zrušeno']: t.status!=='Zaplaceno'?['bad','Nezaplaceno']: t.checkin?['warn','Odbaveno '+t.checkin.split(' ').pop()]:['ok','Zaplaceno'];
+    show('<p class="muted">Nalezeno: '+j.results.length+(j.more?' (zobrazeno prvních 15, upřesněte hledání)':'')+'. Klepněte na správnou rezervaci.</p>'+
+      j.results.map((t,i)=>{const [c,l]=stInfo(t); return `<button type="button" class="res" data-i="${i}"><b>${esc(t.name)}</b><span>${esc(t.seats)}, osob ${t.count}, rezervace ${esc(t.vs)}</span><span class="st ${c}">${esc(l)}</span></button>`;}).join(''));
+    document.querySelectorAll('.res').forEach(b=>b.onclick=()=>{ cur={code:j.results[+b.dataset.i].code,vs:''}; lookup(); window.scrollTo(0,0); });
+  }catch(e){ show('<p class="err">Spojení se nepodařilo. Zkuste to znovu.</p>'); }
+}
+$('#find').onsubmit=e=>{ e.preventDefault(); const q=e.target.q.value.trim(); if(!q) return;
+  if(/^\d{5,}$/.test(q)){ cur={code:'',vs:q}; lookup(); } else search(q); };
+if(code) lookup(); else show('<p class="muted">Načtěte fotoaparátem telefonu QR kód ze vstupenky, nebo níže vyhledejte hosta podle jména.</p>');
 </script>
 </body>
 </html>
