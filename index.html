@@ -181,10 +181,14 @@ footer a{color:inherit}
 .contact a.wa svg{color:#1faa52}
 .contact a.tel svg,.contact a.mail svg{color:var(--accent)}
 .foot-meta{display:flex;flex-wrap:wrap;gap:6px 18px}
-</style>
+.sitenav{display:flex;gap:8px;padding-top:14px;overflow-x:auto;scrollbar-width:none}
+.sitenav a{padding:8px 15px;border-radius:999px;text-decoration:none;color:var(--fg);font-weight:700;font-size:15px;border:1.5px solid var(--line);white-space:nowrap;background:var(--surface)}
+.sitenav a:hover{border-color:var(--accent)}
+.sitenav a[aria-current="page"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}</style>
 </head>
 <body>
 <div class="wrap">
+<nav class="sitenav" aria-label="Sekce webu"><a href="/" aria-current="page">Klubové oblečení</a><a href="/ples/">Ples 2027</a></nav>
   <header>
     <img src="logo.png" alt="Logo Běžeckého klubu Ludgeřovice">
     <div>
