@@ -1,1 +1,7 @@
 DirectoryIndex index.html
+# HTML stránky vždy ověřit na serveru (změny z GitHubu jsou hned vidět)
+<IfModule mod_headers.c>
+  <FilesMatch "\.html$">
+    Header set Cache-Control "no-cache"
+  </FilesMatch>
+</IfModule>
