@@ -26,6 +26,12 @@ input{font:inherit;color:inherit;padding:12px;border:1.5px solid var(--line);bor
 .res{display:block;width:100%;text-align:left;background:var(--bg);border:1.5px solid var(--line);border-radius:12px;padding:12px 14px;margin:8px 0;font:inherit;color:inherit;cursor:pointer}
 .res b{display:block;font-size:18px}.res span{display:block;font-size:14px;color:var(--muted)}.res .st{font-weight:700}.res .st.ok{color:var(--ok)}.res .st.bad{color:var(--accent)}.res .st.warn{color:var(--warn)}
 dl{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:0 0 14px} dt{color:var(--muted)} dd{margin:0;font-weight:700}
+.sub2{margin:-4px 0 14px;font-weight:700}
+.cnt{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:0 0 12px;font-weight:700}
+.stp{display:flex;align-items:center;border:1.5px solid var(--line);border-radius:999px;overflow:hidden}
+.stp button{width:52px;height:52px;border:0;background:var(--surface);color:var(--fg);font-size:26px;cursor:pointer}
+.stp button:disabled{opacity:.35}
+.stp output{min-width:44px;text-align:center;font-size:24px;font-weight:900}
 .err{color:var(--accent);min-height:1em;margin:6px 0 0;font-size:15px}
 .muted{color:var(--muted);font-size:14px}
 :focus-visible{outline:3px solid var(--accent);outline-offset:2px}
@@ -59,22 +65,34 @@ const code=new URLSearchParams(location.search).get('k')||'';
 let cur={code, vs:''};
 
 function show(html){ $('#out').innerHTML='<div class="card">'+html+'</div>'; }
+const osobAkuz=n=> n===1?'osobu':(n<5?'osoby':'osob');
+const osobNom=n=> n===1?'osoba':(n<5?'osoby':'osob');
+const timeOf=t=> t.checkin ? t.checkin.split(' ').pop() : '';
+let nSel=1;
 function render(j){
   if(j.needPin){ show(`<p class="err">${esc(j.message)}</p><p class="muted">Zadejte PIN níže a načtěte kód znovu.</p>`); $('#pinf').pin.focus(); return; }
   if(!j.ticket){ show(`<div class="status bad">${esc(j.message||'Chyba')}</div>`); return; }
-  const t=j.ticket;
-  let st, cls;
+  const t=j.ticket, checked=t.checked||0, rem=(t.remaining!=null)?t.remaining:(t.checkin?0:t.count);
+  let st, cls, sub='';
   if(t.status==='Zrušeno'){ st='Zrušená rezervace'; cls='bad'; }
   else if(t.status!=='Zaplaceno'){ st='Nezaplaceno'; cls='bad'; }
-  else if(t.checkin && !j.justNow){ st='Už odbaveno v '+t.checkin.split(' ').pop(); cls='warn'; }
-  else if(t.checkin){ st='Vstup povolen'; cls='ok'; }
+  else if(j.admitted){ st=`Vstup povolen: ${j.admitted} ${osobNom(j.admitted)}`; cls='ok';
+    sub = rem ? `Ze vstupenky zbývá ještě ${rem} ${osobNom(rem)} z ${t.count}.` : 'Celá rezervace je odbavená.'; }
+  else if(rem===0){ st=`Už odbaveno (${t.count} z ${t.count})`; cls='warn'; sub=`Naposledy v ${timeOf(t)}.`; }
+  else if(checked>0){ st=`Zbývá ${rem} z ${t.count} osob`; cls='ok'; sub=`Už prošlo ${checked}, naposledy v ${timeOf(t)}.`; }
   else { st='Platná vstupenka'; cls='ok'; }
+  nSel=rem;
+  const canIn = t.status==='Zaplaceno' && rem>0;
   show(`<div class="status ${cls}" role="status">${esc(st)}</div>
-    <dl><dt>Jméno</dt><dd>${esc(t.name)}</dd><dt>Osob</dt><dd>${t.count}</dd><dt>Místa</dt><dd>${esc(t.seats)}</dd>
+    ${sub?'<p class="sub2">'+esc(sub)+'</p>':''}
+    <dl><dt>Jméno</dt><dd>${esc(t.name)}</dd><dt>Osob</dt><dd>${t.count}</dd><dt>Odbaveno</dt><dd>${checked} z ${t.count}</dd><dt>Místa</dt><dd>${esc(t.seats)}</dd>
     <dt>Večeře</dt><dd>${t.dinners}×</dd><dt>Rezervace</dt><dd>${esc(t.vs)}</dd></dl>
-    ${t.status==='Zaplaceno' && !t.checkin ? '<button class="btn" id="go">Odbavit '+t.count+' '+(t.count===1?'osobu':(t.count<5?'osoby':'osob'))+'</button>' : ''}
+    ${canIn ? `${rem>1?`<div class="cnt"><span>Kolik lidí teď vchází?</span><div class="stp"><button type="button" id="nm" aria-label="Méně">−</button><output id="nv">${rem}</output><button type="button" id="np" aria-label="Více">+</button></div></div>`:''}<button class="btn" id="go">Odbavit ${rem} ${osobAkuz(rem)}</button>` : ''}
     ${j.message && j.ok===false ? '<p class="err">'+esc(j.message)+'</p>':''}`);
-  const go=$('#go'); if(go) go.onclick=checkin;
+  const go=$('#go'); if(!go) return;
+  go.onclick=checkin;
+  const upd=()=>{ $('#nv').textContent=nSel; go.textContent=`Odbavit ${nSel} ${osobAkuz(nSel)}`; $('#nm').disabled=nSel<=1; $('#np').disabled=nSel>=rem; };
+  if($('#nm')){ $('#nm').onclick=()=>{ nSel=Math.max(1,nSel-1); upd(); }; $('#np').onclick=()=>{ nSel=Math.min(rem,nSel+1); upd(); }; upd(); }
 }
 async function lookup(){
   if(!API_URL){ show('<p class="err">Stránka ještě není napojená na rezervační systém (chybí API_URL).</p>'); return; }
@@ -88,8 +106,7 @@ async function lookup(){
 async function checkin(){
   $('#go').disabled=true; $('#go').textContent='Odbavuji…';
   try{
-    const j=await (await fetch(API_URL,{method:'POST',body:JSON.stringify({action:'checkin',code:cur.code,vs:cur.vs,pin})})).json();
-    if(j.ok && !j.already) j.justNow=true;
+    const j=await (await fetch(API_URL,{method:'POST',body:JSON.stringify({action:'checkin',code:cur.code,vs:cur.vs,pin,n:nSel})})).json();
     render(j);
   }catch(e){ show('<p class="err">Spojení se nepodařilo. Zkuste to znovu.</p>'); }
 }
@@ -101,7 +118,7 @@ async function search(q){
     const j=await (await fetch(API_URL+'?'+new URLSearchParams({action:'ticket',q,pin}))).json();
     if(j.needPin || !j.ok){ render(j.needPin?j:{message:j.message}); return; }
     if(!j.results.length){ show('<div class="status bad">Nic nenalezeno</div><p class="muted">Zkuste jen příjmení bez diakritiky, nebo e-mail.</p>'); return; }
-    const stInfo=t=> t.status==='Zrušeno'?['bad','Zrušeno']: t.status!=='Zaplaceno'?['bad','Nezaplaceno']: t.checkin?['warn','Odbaveno '+t.checkin.split(' ').pop()]:['ok','Zaplaceno'];
+    const stInfo=t=> t.status==='Zrušeno'?['bad','Zrušeno']: t.status!=='Zaplaceno'?['bad','Nezaplaceno']: (t.remaining===0)?['warn','Odbaveno vše ('+t.count+')']: (t.checked>0)?['ok','Odbaveno '+t.checked+' z '+t.count+', zbývá '+t.remaining]:['ok','Zaplaceno, '+t.count+' '+osobNom(t.count)];
     show('<p class="muted">Nalezeno: '+j.results.length+(j.more?' (zobrazeno prvních 15, upřesněte hledání)':'')+'. Klepněte na správnou rezervaci.</p>'+
       j.results.map((t,i)=>{const [c,l]=stInfo(t); return `<button type="button" class="res" data-i="${i}"><b>${esc(t.name)}</b><span>${esc(t.seats)}, osob ${t.count}, rezervace ${esc(t.vs)}</span><span class="st ${c}">${esc(l)}</span></button>`;}).join(''));
     document.querySelectorAll('.res').forEach(b=>b.onclick=()=>{ cur={code:j.results[+b.dataset.i].code,vs:''}; lookup(); window.scrollTo(0,0); });
