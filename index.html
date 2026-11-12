@@ -181,14 +181,10 @@ footer a{color:inherit}
 .contact a.wa svg{color:#1faa52}
 .contact a.tel svg,.contact a.mail svg{color:var(--accent)}
 .foot-meta{display:flex;flex-wrap:wrap;gap:6px 18px}
-.sitenav{display:flex;gap:8px;padding-top:14px;overflow-x:auto;scrollbar-width:none}
-.sitenav a{padding:8px 15px;border-radius:999px;text-decoration:none;color:var(--fg);font-weight:700;font-size:15px;border:1.5px solid var(--line);white-space:nowrap;background:var(--surface)}
-.sitenav a:hover{border-color:var(--accent)}
-.sitenav a[aria-current="page"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}</style>
+</style>
 </head>
 <body>
 <div class="wrap">
-<nav class="sitenav" aria-label="Sekce webu"><a href="/" aria-current="page">Klubové oblečení</a><a href="/ples/">Ples 2027</a></nav>
   <header>
     <img src="logo.png" alt="Logo Běžeckého klubu Ludgeřovice">
     <div>
@@ -241,8 +237,8 @@ const API_URL = 'https://script.google.com/macros/s/AKfycby5VtEbGepNRl82-KPO7MVr
    whatsapp: číslo pro WhatsApp, např. '+420 777 123 456' (může být stejné jako phone) */
 const CONTACT = {
   email: 'david.bibrlik@bkludgerovice.cz',
-  phone: '+420 602 581 189',
-  whatsapp: '+420 602 581 189',
+  phone: '',
+  whatsapp: '',
   whatsappText: 'Ahoj, mám dotaz ke klubovému oblečení.',
   web: 'https://bkludgerovice.cz',
   webLabel: 'bkludgerovice.cz'
@@ -387,11 +383,7 @@ function renderDetail(){
   const c = load(CONTACT_KEY, {});
   const interestForm = sel && sel.qty <= 0 && S.interest ? `<form class="form" id="interestForm" novalidate>
       <h3 class="sec">Kontakt pro zájem</h3>
-      <div class="field"><label for="iName">Jméno a příjmení</label><input id="iName" name="name" autocomplete="name" required minlength="2" value="${esc(c.name || '')}"></div>
-      <div class="two">
-        <div class="field"><label for="iEmail">E-mail</label><input id="iEmail" name="email" type="email" autocomplete="email" inputmode="email" required value="${esc(c.email || '')}"></div>
-        <div class="field"><label for="iPhone">Telefon <span>(nepovinné)</span></label><input id="iPhone" name="phone" type="tel" autocomplete="tel" inputmode="tel" value="${esc(c.phone || '')}"></div>
-      </div>
+      ${contactFields('i', c, false)}
       <div class="field"><label for="iNote">Poznámka <span>(nepovinné)</span></label><textarea id="iNote" name="note" maxlength="1000"></textarea></div>
       ${S.catalog.requiresCode ? `<div class="field"><label for="iCode">Kód pro členy</label><input id="iCode" name="code" required autocomplete="off" value="${esc(c.code || '')}"></div>` : ''}
       <div class="hp" aria-hidden="true"><label>Web<input name="website" tabindex="-1" autocomplete="off"></label></div>
@@ -473,8 +465,8 @@ async function sendInterest(){
   S.busy = true; S.detailError = ''; renderDetailKeep(f);
   try {
     const res = await apiPost({ action: 'interest', item: {id: S.current.id, cut: S.cut || '', size: S.size, qty: S.qty},
-      contact: {name: d.name, email: d.email, phone: d.phone, note: d.note}, accessCode: d.code, website: d.website });
-    if (!res.ok) throw Object.assign(new Error(res.message), {user: true});
+      contact: contactPayload(d), accessCode: d.code, website: d.website });
+    if (!res.ok) { if (MEMBER_ERR.includes(res.error)) S.contactMode = 'manual'; throw Object.assign(new Error(res.message), {user: true}); }
     rememberContact(d);
     closeDlg('#dlgDetail');
     toast('Díky! Zájem jsme zaznamenali a potvrzení ti přijde e-mailem.');
@@ -512,7 +504,7 @@ function renderCart(){
     $('#cartTitle').textContent = 'Objednávka odeslaná';
     $('#cartBody').innerHTML = `<div class="done"><div class="ok" aria-hidden="true">✓</div>
       <p>Číslo objednávky</p><p class="no">${esc(o.orderNo)}</p>
-      <p>Potvrzení jsme poslali na <b>${esc(o.email)}</b>. ${esc(S.catalog.pickupText || '')}</p>
+      <p>Potvrzení jsme poslali ${o.email ? `na <b>${esc(o.email)}</b>` : 'na e-mail, který máme v seznamu členů'}. ${esc(S.catalog.pickupText || '')}</p>
       ${DEMO ? '<p class="fine">Ukázkový režim: nic se ve skutečnosti neodeslalo.</p>' : ''}</div>`;
     $('#cartFoot').innerHTML = '<button class="btn wide" type="button" data-close>Hotovo</button>';
     return;
@@ -535,11 +527,7 @@ function renderCart(){
         <div class="tot">${money(p.price * l.qty)}</div></li>`; }).join('')}</ul>
     <form class="form" id="orderForm" novalidate>
       <h3 class="sec">Tvoje údaje</h3>
-      <div class="field"><label for="oName">Jméno a příjmení</label><input id="oName" name="name" autocomplete="name" required minlength="2" value="${esc(c.name || '')}"></div>
-      <div class="two">
-        <div class="field"><label for="oEmail">E-mail</label><input id="oEmail" name="email" type="email" autocomplete="email" inputmode="email" required value="${esc(c.email || '')}"></div>
-        <div class="field"><label for="oPhone">Telefon</label><input id="oPhone" name="phone" type="tel" autocomplete="tel" inputmode="tel" required pattern="[+0-9 ]{9,}" value="${esc(c.phone || '')}"></div>
-      </div>
+      ${contactFields('o', c, true)}
       <div class="field"><label for="oNote">Poznámka <span>(nepovinné)</span></label><textarea id="oNote" name="note" maxlength="1000" placeholder="Např. kdy se zastavíš v klubu"></textarea></div>
       ${S.catalog.requiresCode ? `<div class="field"><label for="oCode">Kód pro členy</label><input id="oCode" name="code" required autocomplete="off" value="${esc(c.code || '')}"></div>` : ''}
       <div class="hp" aria-hidden="true"><label>Web<input name="website" tabindex="-1" autocomplete="off"></label></div>
@@ -566,10 +554,10 @@ async function submitOrder(){
   S.busy = true; S.formError = ''; renderCart();
   try {
     const res = await apiPost({ action: 'order', items: S.cart.map(l => ({id: l.id, cut: cutOf(l), size: l.size, qty: l.qty})),
-      contact: {name: d.name, email: d.email, phone: d.phone, note: d.note}, accessCode: d.code, website: d.website });
+      contact: contactPayload(d), accessCode: d.code, website: d.website });
     if (res.ok){
       rememberContact(d);
-      S.orderDone = {orderNo: res.orderNo, email: d.email};
+      S.orderDone = {orderNo: res.orderNo, email: S.contactMode === 'manual' ? d.email : ''};
       S.cart = []; save(CART_KEY, S.cart);
       S.cartStep = 'done';
       refreshCatalogQuietly();
@@ -581,6 +569,7 @@ async function submitOrder(){
       setCatalog(res.catalog);
       S.formError = `<b>${esc(res.message)}</b><ul>${msgs}</ul>`;
     } else {
+      if (MEMBER_ERR.includes(res.error)) S.contactMode = 'manual';
       S.formError = esc(res.message || 'Objednávku se nepodařilo odeslat.');
     }
   } catch (e) {
@@ -593,7 +582,12 @@ async function submitOrder(){
 }
 
 async function refreshCatalogQuietly(){ try { const d = await apiCatalog(); if (d.ok) setCatalog(d); } catch(e){} }
-function rememberContact(d){ save(CONTACT_KEY, {name: d.name, email: d.email, phone: d.phone || load(CONTACT_KEY, {}).phone || '', code: d.code || ''}); }
+function rememberContact(d){
+  const old = load(CONTACT_KEY, {});
+  save(CONTACT_KEY, S.contactMode === 'manual'
+    ? {mode: 'manual', name: d.name, email: d.email, phone: d.phone || old.phone || '', code: d.code || ''}
+    : {mode: 'member', name: d.name, code: d.code || old.code || ''});
+}
 
 /* ════════ Dialogy a tlačítko Zpět na mobilu ════════ */
 let skipPop = false;
@@ -642,12 +636,35 @@ function demoCatalog(){
 }
 function demoPost(p){
   return new Promise(r => setTimeout(() => {
+    if (p.contact && p.contact.mode === 'member' && !/^(jan novák|novák jan)$/i.test(String(p.contact.name).trim()))
+      return r({ok: false, error: 'member_not_found', message: 'Tvoje jméno jsme v seznamu členů nenašli. Zkontroluj ho, nebo vyplň e-mail a telefon ručně.'});
     if (p.action === 'order'){
       p.items.forEach(it => { const s = DEMO_DATA.products.find(x => x.id === it.id).sizes.find(s => cutOf(s) === it.cut && s.size === it.size); s.qty -= it.qty; });
       r({ok: true, orderNo: 'BKL-' + new Date().getFullYear() + '-000'});
     } else r({ok: true});
   }, 700));
 }
+
+/* ════════ Kontakt: člen ze seznamu, nebo ruční zadání ════════ */
+S.contactMode = load(CONTACT_KEY, {}).mode === 'manual' ? 'manual' : 'member';
+function contactFields(px, c, phoneRequired){
+  const name = `<div class="field"><label for="${px}Name">Jméno a příjmení</label><input id="${px}Name" name="name" autocomplete="name" required minlength="3" value="${esc(c.name || '')}"></div>`;
+  if (S.contactMode === 'member') return name + `<p class="fine">E-mail a telefon doplníme ze seznamu členů klubu, potvrzení ti přijde na e-mail, který u nás máš. <button type="button" class="linkbtn" data-mode="manual">Nejsem v seznamu nebo chci jiný kontakt</button></p>`;
+  return name + `<div class="two">
+        <div class="field"><label for="${px}Email">E-mail</label><input id="${px}Email" name="email" type="email" autocomplete="email" inputmode="email" required value="${esc(c.email || '')}"></div>
+        <div class="field"><label for="${px}Phone">Telefon${phoneRequired ? '' : ' <span>(nepovinné)</span>'}</label><input id="${px}Phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" ${phoneRequired ? 'required pattern="[+0-9 ]{9,}"' : ''} value="${esc(c.phone || '')}"></div>
+      </div><p class="fine"><button type="button" class="linkbtn" data-mode="member">Jsem člen klubu, kontakt máte v seznamu</button></p>`;
+}
+const contactPayload = (d) => S.contactMode === 'member'
+  ? {mode: 'member', name: d.name, note: d.note}
+  : {mode: 'manual', name: d.name, email: d.email, phone: d.phone, note: d.note};
+const MEMBER_ERR = ['member_not_found', 'member_ambiguous'];
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-mode]'); if (!b) return;
+  S.contactMode = b.dataset.mode;
+  if ($('#interestForm') && b.closest('#interestForm')) { S.detailError = ''; renderDetailKeep($('#interestForm')); $('#iEmail, #iName')?.focus(); }
+  else if (b.closest('#orderForm')) { S.formError = ''; renderCart(); ($('#oEmail') || $('#oName'))?.focus(); }
+});
 
 function renderFooter(){
   const ico = {
