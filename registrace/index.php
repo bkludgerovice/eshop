@@ -6,6 +6,11 @@ declare(strict_types=1);
  * Vše ostatní (app/, config/, vendor/ …) je pro web zakázané v .htaccess.
  */
 
+// Chybové hlášky nikdy nevypisovat návštěvníkům (platí jen pro registrace, nastavení hostingu se nemění).
+ini_set('display_errors', '0');
+ini_set('log_errors', '1');
+error_reporting(E_ALL);
+
 if (PHP_VERSION_ID < 80100) {
     http_response_code(503);
     echo 'BKL Registrace vyžaduje PHP 8.1 nebo novější. Nastavte verzi PHP v administraci Wedos.';

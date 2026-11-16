@@ -9,9 +9,6 @@ use Bkl\Domain\Vs;
 use Bkl\Http\Request;
 use Bkl\Http\Response;
 use Bkl\Util;
-use OpenSpout\Common\Entity\Row;
-use OpenSpout\Common\Entity\Style\Style;
-use OpenSpout\Writer\XLSX\Writer;
 
 /** Registrace, detail objednávky, platby, export. */
 final class RegAdmin
@@ -394,11 +391,8 @@ final class RegAdmin
                 $vals[$k] = isset($vals[$k]) ? $vals[$k] . ', ' . $v['value_text'] : $v['value_text'];
             }
         }
-        $tmp = tempnam(sys_get_temp_dir(), 'bklx');
-        $w = new Writer();
-        $w->openToFile($tmp);
-        $w->addRow(Row::fromValues(array_map(static fn ($c) => $all[$c], $cols), (new Style())->setFontBold()));
         $kc = static fn (int $m) => round($m / 100, 2);
+        $out = [];
         foreach ($rows as $r) {
             $line = [];
             foreach ($cols as $c) {
@@ -418,11 +412,9 @@ final class RegAdmin
                     default => str_starts_with($c, 'f') ? (string) ($vals[(int) $r['id'] . ':' . (int) substr($c, 1)] ?? '') : '',
                 };
             }
-            $w->addRow(Row::fromValues($line));
+            $out[] = $line;
         }
-        $w->close();
-        $data = (string) file_get_contents($tmp);
-        @unlink($tmp);
+        $data = Xlsx::build(array_map(static fn ($c) => $all[$c], $cols), $out);
         $this->c->app->log->audit('event', (int) $e['id'], 'export', null, ['rows' => count($rows), 'cols' => $cols], $this->c->actor());
         return new Response($data, 200, [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',

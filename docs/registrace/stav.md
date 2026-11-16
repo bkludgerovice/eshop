@@ -18,7 +18,8 @@ Větev: `claude/happy-newton-6erwk1`. Kód: `registrace/`. Nic není nasazeno na
 - Plánované úlohy (`/cron?key=` nebo `cli/tool.php cron`): Fio, e-maily, upomínky + zrušení po splatnosti (dle akce), denní záloha, denní souhrn s CSV, hlídání.
 - Zálohy: šifrovaný výpis (libsodium), server 14 dní, e-mail, GitHub Actions artefakt 90 dní + denní test obnovy (`cli/restore-check.php`).
 - Administrace: přihlášení (zámek po 5 chybách), role, CSRF, přehled, akce (nastavení, tratě, ceny, věkové slevy, kupony, pole + možnosti, charita, kategorie, kód pro vložení), registrace (filtr, hledání), detail objednávky (úpravy, stav, ruční platba, vrácení, storno, cena, znovu poslat, poznámka, výmaz GDPR, historie, e-maily), platby (nespárované), export XLSX s výběrem sloupců a šablonami, uživatelé, systém (logy, úlohy, e-maily, audit).
-- Testy: `vendor/bin/phpunit` – 36 testů (jednotkové + proti MariaDB). CI: `.github/workflows/registrace-testy.yml`.
+- Testy: `vendor/bin/phpunit` – 37 testů (jednotkové + proti MariaDB). CI: `.github/workflows/registrace-testy.yml` na PHP 8.1, 8.3, 8.5.
+- Hosting: PHP na Wedosu se nemění (předseda nechce zasahovat; platí i pro WordPress) – je tam 8.5 a `display_errors` zapnuto. Aplikace si výpis chyb vypíná sama (`index.php`, `App::installErrorHandler`: deprecated jen do logu, ostatní varování → výjimka → obecná chybová stránka). Composer `platform-check` vypnut.
 - Nasazení: `.github/workflows/registrace-nasazeni.yml` (ručně, test/produkce, záloha → FTP → migrace → kontrola). `deploy.yml` e-shopu nyní vynechává `docs/`, `registrace/`, `registrace-test/`.
 
 ### Zbývá na 1b (do ~10. 1. 2027)

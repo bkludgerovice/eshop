@@ -38,9 +38,37 @@ final class App
     public static function boot(string $root, ?Config $config = null, ?Db $db = null): self
     {
         date_default_timezone_set(Util::TZ);
+        if (PHP_SAPI !== 'cli') {
+            ini_set('display_errors', '0');
+        }
         $config ??= Config::load($root . '/config/config.php');
         $db ??= Db::fromConfig($config);
-        return new self($config, $db, $root);
+        $app = new self($config, $db, $root);
+        $app->installErrorHandler();
+        return $app;
+    }
+
+    /**
+     * Upozornění novějších verzí PHP (deprecated) jen zapíšeme do logu – nic se nevypisuje a nic nespadne.
+     * Ostatní varování převedeme na výjimku, kterou zachytí Router a zobrazí obecnou chybovou stránku.
+     */
+    public function installErrorHandler(): void
+    {
+        $seen = [];
+        set_error_handler(function (int $no, string $msg, string $file = '', int $line = 0) use (&$seen): bool {
+            if (!(error_reporting() & $no)) {
+                return true; // potlačeno operátorem @
+            }
+            if (in_array($no, [E_DEPRECATED, E_USER_DEPRECATED], true)) {
+                $key = md5($file . $line);
+                if (!isset($seen[$key])) {
+                    $seen[$key] = true;
+                    error_log('[BKL] deprecated: ' . $msg . ' @ ' . basename($file) . ':' . $line);
+                }
+                return true;
+            }
+            throw new \ErrorException($msg, 0, $no, $file, $line);
+        });
     }
 
     public function view(): View

@@ -57,7 +57,13 @@ abstract class DbTestCase extends TestCase
         @mkdir($root . '/storage/backups', 0777, true);
         @mkdir($root . '/storage/mail', 0777, true);
         $this->app = new App(self::config(), $db, $root);
+        $this->app->installErrorHandler(); // stejně přísně jako v provozu
         $this->seedEvent();
+    }
+
+    protected function tearDown(): void
+    {
+        restore_error_handler();
     }
 
     protected function seedEvent(int $capacity = 170): void

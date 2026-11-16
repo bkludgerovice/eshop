@@ -16,7 +16,7 @@ Celkem cca 1–2 hodiny. Hesla a tokeny **nikdy neposílejte do chatu ani e-mail
    - produkční (např. popis „registrace“),
    - testovací (např. „registrace-test“).
    Wedos pošle e-mailem: server (md123.wedos.net), název databáze, uživatele a heslo. Uschovejte.
-4. **PHP**: u webu eshop.bkludgerovice.cz zkontrolujte verzi PHP – musí být **8.1 nebo novější** (doporučeno nejnovější 8.x).
+4. **PHP**: nastavení PHP na hostingu se **nemění** (platí i pro WordPress klubu a pobl.cz). Registrace běží na nastavené verzi (8.5; automaticky testováno na 8.1, 8.3 a 8.5) a samy si vypínají výpis chybových hlášek, i když je na hostingu `display_errors` zapnuté.
 
 ### A2. Fio – token jen pro čtení
 1. Internetové bankovnictví Fio → Nastavení → **API** → Přidat nový token.
