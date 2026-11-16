@@ -43,7 +43,7 @@ Doporučuji postavit registrace jako PHP aplikaci s databází MariaDB přímo n
 
 ### 3.0 Zjištěný stav hostingu (z e-mailů od Wedosu, 16. 11. 2026)
 - **Kde:** Wedos, webhosting pojmenovaný podle domény **behotoulani.cz**, zákaznické číslo webhostingu **286112**, FTP server `286112.w12.wedos.net`. Zřízen 21. 10. 2021 (přesun od jiného poskytovatele).
-- **Kdo platí:** služba je vedená a fakturovaná na **Ing. David Bíbrlík (osobní IČ)**, ne na klub. Přihlášení: client.wedos.com, účet s e-mailem david.bibrlik@gmail.com.
+- **Kdo platí:** služba je vedená a fakturovaná na **Ing. David Bíbrlík (osobní IČ)**, ne na klub. Přihlášení: client.wedos.com (účet předsedy).
 - **Cena:** 2024/25 = 999,96 Kč bez DPH za rok (cca 100 Kč měsíčně s DPH) → pravděpodobně tarif **NoLimit**. Přesný název a datum expirace ověřit v administraci (poslední nalezená výzva k platbě končí 26. 7. 2025, služba ale běží dál – prodloužení se zřejmě platí jinak, např. ze zálohového účtu).
 - **Co na něm už běží:** více webů najednou – WordPress behotoulani.cz, e-shop a ples (FTP účet `w286112_eshop` zřízený 5. 11. 2026 – ten pravděpodobně používá GitHub pro nahrávání), další FTP účty a několik databází MariaDB na serveru `md123.wedos.net` (názvy `d286112_…`).
 - **Hlavní web bkludgerovice.cz (WordPress):** DNS se 11. 11. 2026 přepínaly mezi Cloudflare a Wedosem (spravuje M. Zapletalová). Z e-mailů nejde jednoznačně říct, zda WordPress klubu běží na tomtéž webhostingu → ověřit.
