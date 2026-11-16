@@ -1,6 +1,7 @@
 # BKL Registrace 3.0 – Fáze 1: technická analýza
 
-Stav k 16. 11. 2026 · podklady: zadání „BKL Registrace 3.0“ (16. 10. 2026) a „Doplněk k zadání“ (15. 11. 2026). Kde se liší, platí doplněk.
+Stav k 16. 11. 2026 · podklady: zadání „BKL Registrace 3.0“ (16. 10. 2026) a „Doplněk k zadání“ (15. 11. 2026).
+Doplněno 16. 11. 2026 o rozbor kódu Apps Scriptů e-shopu a plesu. Kde se liší, platí doplněk.
 Tento dokument je jen analýza – nic se neprogramuje ani nenasazuje.
 
 ## 1. Shrnutí v jednom odstavci
@@ -19,9 +20,17 @@ Doporučuji postavit registrace jako PHP aplikaci s databází MariaDB přímo n
 
 **„Databáze“ a logika:** dvě Google Apps Script aplikace (adresy `script.google.com/macros/s/…/exec`) nad Google Sheety – jedna pro e-shop (akce `catalog`, `order`, `interest`), druhá pro ples (`seats`, `reserve`, `ticket`, `checkin`, testovací režim `?test=`). Kód skriptů v repozitáři není.
 
-**Odesílání e-mailů:** stránky samy e-maily neposílají; potvrzení objednávky („potvrzení ti přijde e-mailem“) posílá Apps Script – nejspíš přes `MailApp`/`GmailApp` pod účtem Google Workspace klubu. **Ověřit z kódu Apps Scriptu** (zatím nedodán).
+**Odesílání e-mailů (ověřeno z kódu Apps Scriptů, dodán 16. 11. 2026):**
+- **E-shop** posílá přes `MailApp.sendEmail` pod Google účtem vlastníka tabulky (david.bibrlik@bkludgerovice.cz), jméno odesílatele „BK Ludgeřovice – klubové oblečení“, odpovědi na admina. Vlastní adresa odesílatele se nenastavuje.
+- **Ples** posílá přes `GmailApp.sendEmail` pod stejným účtem. Pokud je „Odesílatel e-mailů“ nastavený jako **alias v Gmailu** („Odesílat poštu jako“), použije ho jako adresu odesílatele, jinak jen jako adresu pro odpovědi. Přikládá QR kód (obrázek v e-mailu) a PDF vstupenku.
+- Tedy: **„stejné řešení jako e-shop“ = Google Workspace (Gmail) klubu.** Sender.net se nepoužívá. Denní limit Apps Scriptu ve Workspace je cca 1 500 příjemců.
+- E-shop i ples mají ochranu: skryté pole proti robotům, limit počtu požadavků, zámek proti souběhu (LockService).
 
-**Platby plesu:** QR platba na účet 2502518589/2010 (Fio). Jak se dnes párují platby plesu (ručně, nebo skriptem přes Fio API), není z webu vidět – ověřit.
+**Platby plesu (ověřeno z kódu):** QR platba (SPD) na účet **2502518589/2010 (Fio)**. Apps Script plesu **už používá Fio API**: token je ve vlastnostech skriptu (`FIO_TOKEN`), **každých 5 minut** stahuje pohyby za posledních 30 dní (`/periods/`), ukládá je do listu Platby podle ID pohybu (bez duplicit), páruje podle VS, posílá vstupenku, hlásí nedoplatky, platby ke zrušeným rezervacím a neznámé VS. Nezaplacené ruší po splatnosti + toleranci, předtím pošle připomínku.
+- **VS plesu: 7 číslic od 2701001, prefix `2701`.** Platby s jiným VS ples ignoruje; platbu s VS začínajícím `2701` bez rezervace hlásí adminovi.
+- Prodej plesu běží od 15. 11. 2026 – Fio token plesu je teď v aktivním provozu.
+
+**Co z plesu převezmeme (osvědčené postupy):** stahování Fio „za období“ s ukládáním podle ID pohybu, formát QR (SPD), stavy Čeká na platbu / Zaplaceno / Zrušeno, připomínka a tolerance před zrušením, upozornění adminovi na sporné platby, kontrola vstupu s PINem a vyhledáváním podle jména (`ples/vstup.html` je dobrý vzor pro prezenci).
 
 **Nasazení:** GitHub Actions `.github/workflows/deploy.yml` – každý push do větve `main` nahraje celý repozitář přes FTP na Wedos (kromě `.git*`, `.github/`, `README.md`). Nástroj FTP-Deploy-Action si pamatuje, co nahrál, a soubory vytvořené na serveru ručně nemaže.
 
@@ -83,10 +92,10 @@ Zdroje: kb.vedos.cz (webhosting-cron, webhosting-php, webhosting-databaze), blog
 - **Ve formuláři nepoužívat cookies** (Safari je v iframe blokuje) – vše se odešle jedním požadavkem s ochranným tokenem.
 - **Kapacita a souběh:** registrace se zapisuje v databázové transakci se zamčením řádku akce (`SELECT … FOR UPDATE`) → poslední místo nemůže získat dva lidé. Místo je „rezervované“ od odeslání formuláře (stav Čeká na platbu) do zaplacení / zrušení po splatnosti.
 - **Plánované úlohy (CRON+):** každých 5 min `fio-sync` (stažení plateb, párování) + odeslání fronty e-mailů; 1× denně záloha, upomínky/zrušení po splatnosti, denní souhrn správci; kontrola „úloha neběžela > 1 h“ → okamžité upozornění.
-- **E-maily:** odesílatel `registrace@bkludgerovice.cz` přes **Google Workspace** (stejný poskytovatel jako dnes; předpoklad – ověřit z Apps Scriptu). Technicky: SMTP Google Workspace (účet nebo alias registrace@, heslo aplikace / SMTP relay). SPF pro Google už máte → **pravděpodobně žádná změna DNS**. Limit ~2 000 e-mailů/den na účet – na 400 závodníků stačí. Sender.net zůstává jen pro newslettery (doplněk). Každý e-mail jde přes frontu s historií a ochranou proti duplicitě; kopie potvrzení každé registrace jde do schránky registrace@ (druhá stopa).
+- **E-maily:** odesílatel `registrace@bkludgerovice.cz` přes **Google Workspace** – stejný poskytovatel jako e-shop a ples (ověřeno z kódu). Doporučené provedení: `registrace@` jako **alias** existujícího účtu (bez další licence) nastavený v Gmailu jako „Odesílat poštu jako“; aplikace na Wedosu posílá přes SMTP Google (`smtp.gmail.com`, port 587) s **heslem aplikace** (vyžaduje dvoufázové ověření účtu; heslo jen v `secrets.php`). Alternativa bez SMTP: malý Apps Script „pošťák“, kterému aplikace předá e-mail k odeslání (přesně jako ples, ale přidává závislost na Googlu). E-maily odcházejí přes servery Google → **pravděpodobně žádná změna DNS** (ověřit, že SPF obsahuje `include:_spf.google.com` a je zapnutý DKIM ve Workspace). Limit Gmailu ~2 000 zpráv/den – na 400 závodníků stačí. Sender.net zůstává jen pro newslettery (doplněk). Každý e-mail jde přes frontu s historií a ochranou proti duplicitě; kopie potvrzení každé registrace jde do schránky registrace@ (druhá stopa).
 - **Platba převodem:** jeden QR kód (SPD) na klubový účet Fio, částka = startovné + produkty − sleva + charita; v databázi rozepsáno odděleně.
-- **Fio párování:** stahovat transakce za posledních ~10 dní (ne „od poslední zarážky“) a ukládat podle jedinečného ID transakce → opakované stažení nic nezduplikuje a po výpadku se nic neztratí. Limit Fio 1 dotaz / 30 s na token – dodržen. Párování podle VS a částky: přesně → Zaplaceno; méně → Částečně (ke kontrole); více → Přeplaceno (ke kontrole); neznámý VS → Nespárováno (ruční párování v administraci). Platby plesu/e-shopu na stejném účtu systém ignoruje podle rozsahu VS.
-- **Variabilní symbol:** 10 číslic, např. `27` + číslo akce (3) + pořadové číslo (5) – nesmí kolidovat s VS plesu → ověřit, jaký formát VS používá ples.
+- **Fio párování:** stejně jako ples – stahovat pohyby za posledních ~30 dní (`/periods/`, ne „od poslední zarážky“) a ukládat podle jedinečného ID pohybu → opakované stažení nic nezduplikuje a po výpadku se nic neztratí. **Samostatný token jen pro registrace** (jen pro sledování účtu): Fio povoluje 1 dotaz / 30 s **na token** a ples se svým tokenem dotazuje každých 5 minut – sdílený token by způsoboval odmítnuté dotazy (chyba 409) v obou systémech. V internetovém bankovnictví Fio lze k jednomu účtu vytvořit více tokenů. Párování podle VS a částky: přesně → Zaplaceno; méně → Částečně (ke kontrole); více → Přeplaceno (ke kontrole); neznámý VS → Nespárováno (ruční párování v administraci). Platby plesu/e-shopu na stejném účtu systém ignoruje podle rozsahu VS.
+- **Variabilní symbol:** ples používá `2701001`, `2701002`, … (prefix `2701`). Registrace proto **nesmí začínat na `2701`** (ples by je hlásil jako neznámé platby). Návrh: 9 číslic `8` + rok (2) + číslo akce (2) + pořadí (4), např. Zimní běh 2027 = akce 01 → `827010001`, `827010002`, … Registrace ignorují platby mimo svůj rozsah (`8…`), ples ignoruje platby mimo `2701…` → systémy se nepletou.
 - **Vícejazyčnost:** texty v databázi i v šablonách ukládány po jazycích od začátku; ve verzi 1 vyplněna jen čeština.
 
 ## 5. Návrh databáze (pro celé zadání)
@@ -187,13 +196,14 @@ Značky: **V1** = implementuje se pro Zimní běh, **V2** = připraveno ve struk
 | 3 | Sdílený webhosting s WordPressem – výkon při náporu | střední | NoLimit Extra nebo oddělený webhosting; zátěžový test před L15 |
 | 4 | `docs/` a citlivé soubory se nasazením zveřejní | vysoký | výjimky v deploy.yml, `secrets.php` jen na serveru, `.htaccess` zákazy |
 | 5 | Automatické nasazení z `main` bez schválení | střední | oddělený workflow registrací s ručním spuštěním |
-| 6 | Kolize VS s plesem / e-shopem na stejném účtu Fio | střední | vlastní rozsah VS, ověřit formát VS plesu |
-| 7 | Fio token: limit 30 s, sdílení tokenu s Apps Scriptem plesu | nízký–střední | samostatný token jen pro registrace |
+| 6 | Kolize VS s plesem na stejném účtu Fio (ples: prefix `2701`) | střední | registrace v rozsahu `8YYAA####`, nikdy `2701…` |
+| 7 | Sdílení Fio tokenu s plesem (ples volá Fio každých 5 min, limit 1 dotaz/30 s na token) | střední | samostatný token „jen sledování“ pro registrace |
+| 7b | Denní limit Gmailu sdílený s e-shopem a plesem (stejný účet) | nízký | odhad < 1 000 zpráv/den i při L15; hlídat chyby odeslání, případně samostatný účet registrace@ |
 | 8 | Výpadek cronu → nepárují se platby, neodcházejí e-maily | střední | `job_runs` + upozornění; párování lze spustit ručně tlačítkem |
 | 9 | E-maily do spamu / limity Google | střední | Workspace SMTP, ověřit SPF/DKIM/DMARC před spuštěním, limit 2 000/den |
 | 10 | Safari/iOS blokuje cookies v iframe | střední | formulář bez cookies; odkaz „otevřít v novém okně“ |
 | 11 | GDPR: veřejná startovka bez možnosti skrytí, nezletilí | střední | jasná informace u souhlasu, u nezletilých souhlas rodiče; konzultace právně |
-| 12 | Stávající logika e-shopu/plesu je mimo repozitář (Apps Script) | nízký | registrace na ní nebudou záviset; kód ale potřebuji vidět kvůli e-mailům a VS |
+| 12 | Stávající logika e-shopu/plesu je mimo repozitář (Apps Script) | nízký | registrace na ní nezávisí; kód prověřen 16. 11. 2026, do skriptů se nezasahuje |
 | 13 | Prezence v hale bez signálu | střední | ověřit signál/Wi-Fi; offline seznam (PDF/Excel) jako záloha |
 | 14 | Jeden člověk zná přístupy | střední | trezor hesel, druhý správce s přístupem |
 
@@ -204,9 +214,9 @@ Značky: **V1** = implementuje se pro Zimní běh, **V2** = připraveno ve struk
 3. Je repozitář `bkludgerovice/eshop` soukromý? (Zadání požaduje soukromý repozitář.)
 
 **Stávající systém**
-4. Prosím o kód obou Apps Scriptů (e-shop, ples) – hlavně jak posílají e-maily a jaký formát VS používá ples.
-5. Existuje schránka/alias `registrace@bkludgerovice.cz` v Google Workspace? Kdo je správce Workspace a DNS?
-6. Je 2502518589/2010 hlavní klubový účet, na který mají jít i registrace? Používá už něco Fio API (jiný token)?
+4. ~~Kód Apps Scriptů~~ – dodán a prověřen (kap. 2).
+5. Existuje schránka/alias `registrace@bkludgerovice.cz` v Google Workspace? Souhlasíte, aby byl alias vašeho účtu a e-maily šly přes SMTP Google s heslem aplikace (máte zapnuté dvoufázové ověření)? Kdo spravuje DNS?
+6. Mají registrace chodit na stejný účet 2502518589/2010 jako ples? Můžete pro registrace vytvořit **druhý Fio token jen pro sledování** (token plesu ponechat jen plesu)?
 
 **Pravidla závodu**
 7. Formulář: ptát se na celé **datum narození**, nebo jen na **ročník**? (Věk i slevy se počítají podle ročníku.)
