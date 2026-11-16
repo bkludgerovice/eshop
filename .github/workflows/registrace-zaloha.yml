@@ -21,7 +21,7 @@ jobs:
       - name: Stažení zálohy
         run: |
           curl -fsS --max-time 120 -H "X-Cron-Key: ${{ secrets.REG_CRON_KEY }}" -o zaloha.sql.gz.enc \
-            "https://eshop.bkludgerovice.cz/registrace/cron?task=latest-backup"
+            "https://eshop.bkludgerovice.cz/registrace/cron?task=latest-backup&key=${{ secrets.REG_CRON_KEY }}"
           ls -l zaloha.sql.gz.enc
       - uses: actions/upload-artifact@v4
         with:

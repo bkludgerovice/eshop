@@ -40,10 +40,23 @@ jobs:
       - name: Knihovny bez vývojových nástrojů
         working-directory: registrace
         run: composer install --no-dev --optimize-autoloader --no-interaction --no-progress
+      - name: Kontrola klíče pro plánované úlohy
+        run: |
+          if [ -z "$CRON_KEY" ]; then
+            echo "::error::V GitHubu chybí secret ${{ inputs.cil == 'produkce' && 'REG_CRON_KEY' || 'REG_TEST_CRON_KEY' }} (Settings → Secrets and variables → Actions)."
+            exit 1
+          fi
+          # Pokud už aplikace na serveru běží, ověříme klíč hned (ne až po nahrání).
+          code=$(curl -sS --max-time 60 -o odpoved.txt -w '%{http_code}' -H "X-Cron-Key: $CRON_KEY" "$URL/cron?task=status&key=$CRON_KEY" || true)
+          cat odpoved.txt; echo
+          if [ "$code" = "403" ]; then echo "::error::Server odmítl klíč: secret ${{ inputs.cil == 'produkce' && 'REG_CRON_KEY' || 'REG_TEST_CRON_KEY' }} v GitHubu nesouhlasí s cron_key v config.php na serveru."; exit 1; fi
       - name: Záloha databáze před nasazením
         if: ${{ !inputs.prvni }}
         run: |
-          curl -fsS --max-time 120 -H "X-Cron-Key: $CRON_KEY" "$URL/cron?task=backup" && echo
+          code=$(curl -sS --max-time 120 -o odpoved.txt -w '%{http_code}' -H "X-Cron-Key: $CRON_KEY" "$URL/cron?task=backup&key=$CRON_KEY" || true)
+          cat odpoved.txt; echo
+          if [ "$code" = "403" ]; then echo "::error::Server odmítl klíč: secret ${{ inputs.cil == 'produkce' && 'REG_CRON_KEY' || 'REG_TEST_CRON_KEY' }} v GitHubu nesouhlasí s cron_key v config.php na serveru."; exit 1; fi
+          if [ "$code" != "200" ]; then echo "::error::Server vrátil chybu $code."; exit 1; fi
       - name: Nahrání na Wedos (jen složka registrací)
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
@@ -65,7 +78,10 @@ jobs:
             storage/logs/**
       - name: Databázové změny (migrace)
         run: |
-          curl -fsS --max-time 120 -H "X-Cron-Key: $CRON_KEY" "$URL/cron?task=migrate" && echo
+          code=$(curl -sS --max-time 120 -o odpoved.txt -w '%{http_code}' -H "X-Cron-Key: $CRON_KEY" "$URL/cron?task=migrate&key=$CRON_KEY" || true)
+          cat odpoved.txt; echo
+          if [ "$code" = "403" ]; then echo "::error::Server odmítl klíč: secret ${{ inputs.cil == 'produkce' && 'REG_CRON_KEY' || 'REG_TEST_CRON_KEY' }} v GitHubu nesouhlasí s cron_key v config.php na serveru."; exit 1; fi
+          if [ "$code" != "200" ]; then echo "::error::Server vrátil chybu $code."; exit 1; fi
       - name: Kontrola po nasazení
         run: |
           set -e
