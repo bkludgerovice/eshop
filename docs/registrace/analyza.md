@@ -77,7 +77,18 @@ Doporučuji postavit registrace jako PHP aplikaci s databází MariaDB přímo n
 - LowCost nepřichází v úvahu (0 aliasů – běží tu bkludgerovice.cz a pobl.cz).
 - NoLimit má **limit 3 aliasy** – ověřit, kolik je jich obsazeno (bkludgerovice.cz, pobl.cz + další). Registrace na adrese `eshop.bkludgerovice.cz/registrace/` žádný nový alias nepotřebují.
 - Zálohy Wedos jsou u NoLimit jen **týdně** → vlastní denní záloha mimo hosting (kap. 7) je nutná.
-- Extra stojí o 100 Kč/měs. bez DPH víc; i s CRON+ zůstane celkový náklad pod hranicí 300 Kč/měs. (ověřit cenu CRON+).
+- Extra stojí o 100 Kč/měs. bez DPH víc; i s CRON+ zůstane celkový náklad pod hranicí 300 Kč/měs.
+
+**Doplňkové služby webhostingu (administrace, 16. 11. 2026, bez DPH):**
+| Služba | Stav | Cena | Doporučení |
+|---|---|---|---|
+| **CRON+** (10 úloh, každých 5 min) | neaktivní | **8 Kč/měs.** | **aktivovat** před spuštěním registrací (nutné pro Fio, e-maily, zálohy) |
+| Errorlog | neaktivní | 25 Kč/měs. | volitelné – aplikace bude mít vlastní evidenci chyb; lze dočasně zapnout zdarma na 24 h při řešení problému |
+| Accesslog | neaktivní | 50 Kč/měs. | není potřeba |
+| neomezený počet aliasů | neaktivní | 110 Kč/měs. | jen pokud dojdou 3 aliasy |
+| podpora HTTPS | aktivní | zdarma | ✔ |
+
+Doplňky se platí poměrně do konce hlavní služby (26. 7. 2027) – CRON+ tedy cca 70 Kč bez DPH jednorázově. **Celkový dodatečný náklad registrací pro Zimní běh: cca 8 Kč/měs.**
 - Databáze registrací bude malá (jednotky MB). Celková velikost databází je 968 MB – ověřit limit tarifu (NoLimit cca 2 GB), rezerva je dostatečná.
 - Zbývá ověřit: **CRON+** (v přehledu doplňkových služeb webhostingu, níže na stránce), verze PHP (odkaz „Interní adresa webu“ / nastavení PHP).
 - FTP účet `w286112_eshop` (zřízen 5. 11. 2026) je **ověřeně omezen na adresář `/www/domains/eshop.bkludgerovice.cz`** → nahrávání z GitHubu nemůže přepsat WordPress klubu ani pobl.cz. ✔ Tento adresář je zároveň kořenem webu e-shopu, takže tajné soubory registrací musí být chráněné `.htaccess` (Require all denied) – mimo webový kořen se tímto účtem nedostaneme.
@@ -108,7 +119,7 @@ Zdroje: kb.vedos.cz (webhosting-cron, webhosting-php, webhosting-databaze), blog
 5. Pošlete mi: název tarifu, verzi PHP, zda máte CRON+, a zda je eshop.bkludgerovice.cz na stejném webhostingu jako bkludgerovice.cz (WordPress).
 
 ### 3.3 Doporučení hostingu
-- **Doporučuji Wedos** (NoLimit, nebo NoLimit Extra, pokud je WordPress na stejném hostingu – oddělí se výkon) + **CRON+**. Ceny dle administrace: NoLimit 100 Kč/měs. bez DPH (už placeno do 26. 7. 2027), Extra 200 Kč/měs. bez DPH, CRON+ ověřit. Pro Zimní běh je dodatečný náklad jen CRON+.
+- **Doporučuji Wedos** (NoLimit, nebo NoLimit Extra, pokud je WordPress na stejném hostingu – oddělí se výkon) + **CRON+**. Ceny dle administrace: NoLimit 100 Kč/měs. bez DPH (už placeno do 26. 7. 2027), Extra 200 Kč/měs. bez DPH, CRON+ 8 Kč/měs. bez DPH. Pro Zimní běh je dodatečný náklad jen CRON+.
 - Pokud na webhostingu běží i WordPress, výpadek registrací WordPress neshodí (jiná aplikace), ale **zátěž sdílí** – proto Extra nebo oddělený webhosting pro subdoménu `eshop`.
 - **Záložní varianta Render** (~300 Kč/měs.: webová služba ~7 USD + PostgreSQL ~7 USD) – stabilnější provoz aplikací, ale vlastní nasazení a vyšší cena. Railway podobně (platba podle spotřeby, ~5–15 USD). Aplikaci navrhnu tak, aby šla později přesunout (standardní PHP + SQL, žádné zvláštnosti Wedos v kódu).
 - Pokud CRON+ nebude k dispozici: Fio párování spouštět zvenku (GitHub Actions plánovač nebo cron-job.org volá chráněnou adresu každých 5–10 minut). Funguje, ale je méně spolehlivé → jen jako záloha.
@@ -257,7 +268,7 @@ Značky: **V1** = implementuje se pro Zimní běh, **V2** = připraveno ve struk
 
 ## 10. Nejasnosti a otázky pro předsedu
 **Hosting a přístupy**
-1. ~~Tarif~~ – **NoLimit, do 26. 7. 2027**. Zbývá: je aktivní / dostupný CRON+ a jaká je verze PHP?
+1. ~~Tarif~~ – **NoLimit, do 26. 7. 2027**; CRON+ dostupný za 8 Kč/měs. (zatím neaktivní). Zbývá ověřit verzi PHP.
 2. Souhlasíte s dokoupením CRON+ (a případně NoLimit Extra), pokud vyjde pod 300 Kč/měs.?
 3. Je repozitář `bkludgerovice/eshop` soukromý? (Zadání požaduje soukromý repozitář.)
 
