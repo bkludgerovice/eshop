@@ -26,7 +26,7 @@ legend{display:flex;justify-content:space-between;align-items:center;width:100%;
 legend+*{clear:both}
 .field{margin:0 0 12px}
 .field label,.label{display:block;font-weight:600;font-size:.95rem}
-input[type=text],input:not([type]),input[type=email],input[type=tel],input[type=date],input[type=search],input[type=number],input[type=password],select,textarea{display:block;width:100%;margin-top:4px;padding:12px;font:inherit;font-size:16px;border:1px solid #c9c3c1;border-radius:10px;background:#fff;color:var(--ink);min-height:48px}
+input[type=text],input:not([type]),input[type=email],input[type=tel],input[type=date],input[type=search],input[type=number],input[type=password],input[type=url],input[type=datetime-local],select,textarea{display:block;width:100%;margin-top:4px;padding:12px;font:inherit;font-size:16px;border:1px solid #c9c3c1;border-radius:10px;background:#fff;color:var(--ink);min-height:48px}
 textarea{min-height:auto}
 input:focus,select:focus,textarea:focus{outline:3px solid color-mix(in srgb,var(--accent) 35%,transparent);border-color:var(--accent)}
 .invalid input,.invalid select,.invalid textarea{border-color:var(--err);background:var(--errbg)}
@@ -94,3 +94,4 @@ dt{color:var(--muted)}dd{margin:0}
 .event-link span{display:block;color:var(--muted)}
 @media(max-width:400px){.wrap{padding:12px}.card{padding:12px}h1{font-size:1.35rem}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
+input[type=color]{width:64px;height:44px;padding:2px;border:1px solid #c9c3c1;border-radius:8px;display:block;margin-top:4px}

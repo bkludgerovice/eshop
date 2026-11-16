@@ -34,6 +34,16 @@ final class PricingTest extends TestCase
         self::assertSame(2, Pricing::pickTier($this->tiers(), 5, $jan)['id']);
     }
 
+    public function testLaterTierWinsWhenOverlapping(): void
+    {
+        $tiers = [
+            ['id' => 1, 'race_id' => null, 'valid_from' => null, 'valid_to' => null, 'channel' => 'online', 'amount' => 17000],
+            ['id' => 2, 'race_id' => null, 'valid_from' => '2027-01-01 00:00:00', 'valid_to' => null, 'channel' => 'online', 'amount' => 20000],
+        ];
+        self::assertSame(1, Pricing::pickTier($tiers, 5, new \DateTimeImmutable('2026-12-31 23:00'))['id']);
+        self::assertSame(2, Pricing::pickTier($tiers, 5, new \DateTimeImmutable('2027-01-01 08:00'))['id']);
+    }
+
     public function testRaceSpecificTierWins(): void
     {
         self::assertSame(4, Pricing::pickTier($this->tiers(), 7, new \DateTimeImmutable('2026-12-01'))['id']);

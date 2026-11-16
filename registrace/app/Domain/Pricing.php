@@ -46,10 +46,12 @@ final class Pricing
                     continue;
                 }
                 $rid = $t['race_id'] === null || $t['race_id'] === '' ? null : (int) $t['race_id'];
-                if ($rid === $raceId) {
-                    $specific ??= $t;
-                } elseif ($rid === null) {
-                    $general ??= $t;
+                // Při překryvu vyhrává hladina s pozdějším začátkem platnosti (např. „od 1. 1.“ před obecnou cenou).
+                $later = static fn (?array $cur): bool => $cur === null || (string) ($t['valid_from'] ?? '') > (string) ($cur['valid_from'] ?? '');
+                if ($rid === $raceId && $later($specific)) {
+                    $specific = $t;
+                } elseif ($rid === null && $later($general)) {
+                    $general = $t;
                 }
             }
             if ($specific || $general) {
