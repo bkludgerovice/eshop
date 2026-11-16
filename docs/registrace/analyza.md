@@ -1,7 +1,7 @@
 # BKL Registrace 3.0 – Fáze 1: technická analýza
 
-Stav k 16. 11. 2026 · podklady: zadání „BKL Registrace 3.0“ (16. 10. 2026) a „Doplněk k zadání“ (15. 11. 2026).
-Doplněno 16. 11. 2026 o rozbor kódu Apps Scriptů e-shopu a plesu. Kde se liší, platí doplněk.
+Stav k 16. 11. 2026 · podklady: zadání „BKL Registrace 3.0“ (16. 10. 2026) a „Doplněk k zadání“ (15. 11. 2026). Kde se liší, platí doplněk.
+Doplněno 16. 11. 2026 o rozbor kódu Apps Scriptů e-shopu a plesu.
 Tento dokument je jen analýza – nic se neprogramuje ani nenasazuje.
 
 ## 1. Shrnutí v jednom odstavci
