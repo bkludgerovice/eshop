@@ -22,6 +22,7 @@ jobs:
         run: |
           curl -fsS --max-time 120 -H "X-Cron-Key: ${{ secrets.REG_CRON_KEY }}" -o zaloha.sql.gz.enc \
             "https://eshop.bkludgerovice.cz/registrace/cron?task=latest-backup&key=${{ secrets.REG_CRON_KEY }}"
+          if grep -q "challenges.cloudflare.com" zaloha.sql.gz.enc; then echo "::error::Stažení zálohy zablokoval Cloudflare – eshop.bkludgerovice.cz přepnout na „DNS only“."; exit 1; fi
           ls -l zaloha.sql.gz.enc
       - uses: actions/upload-artifact@v4
         with:

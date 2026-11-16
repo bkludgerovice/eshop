@@ -49,12 +49,14 @@ jobs:
           # Pokud už aplikace na serveru běží, ověříme klíč hned (ne až po nahrání).
           code=$(curl -sS --max-time 60 -o odpoved.txt -w '%{http_code}' -H "X-Cron-Key: $CRON_KEY" "$URL/cron?task=status&key=$CRON_KEY" || true)
           cat odpoved.txt; echo
+          if grep -q "challenges.cloudflare.com" odpoved.txt 2>/dev/null; then echo "::error::Požadavek zablokoval Cloudflare (kontrola robotů) – klíč je v pořádku. Subdoménu eshop.bkludgerovice.cz je potřeba v Cloudflare přepnout na „DNS only“ (viz docs/registrace/provoz.md, kap. A8)."; exit 1; fi
           if [ "$code" = "403" ]; then echo "::error::Server odmítl klíč: secret ${{ inputs.cil == 'produkce' && 'REG_CRON_KEY' || 'REG_TEST_CRON_KEY' }} v GitHubu nesouhlasí s cron_key v config.php na serveru."; exit 1; fi
       - name: Záloha databáze před nasazením
         if: ${{ !inputs.prvni }}
         run: |
           code=$(curl -sS --max-time 120 -o odpoved.txt -w '%{http_code}' -H "X-Cron-Key: $CRON_KEY" "$URL/cron?task=backup&key=$CRON_KEY" || true)
           cat odpoved.txt; echo
+          if grep -q "challenges.cloudflare.com" odpoved.txt 2>/dev/null; then echo "::error::Požadavek zablokoval Cloudflare (kontrola robotů) – klíč je v pořádku. Subdoménu eshop.bkludgerovice.cz je potřeba v Cloudflare přepnout na „DNS only“ (viz docs/registrace/provoz.md, kap. A8)."; exit 1; fi
           if [ "$code" = "403" ]; then echo "::error::Server odmítl klíč: secret ${{ inputs.cil == 'produkce' && 'REG_CRON_KEY' || 'REG_TEST_CRON_KEY' }} v GitHubu nesouhlasí s cron_key v config.php na serveru."; exit 1; fi
           if [ "$code" != "200" ]; then echo "::error::Server vrátil chybu $code."; exit 1; fi
       - name: Nahrání na Wedos (jen složka registrací)
@@ -80,6 +82,7 @@ jobs:
         run: |
           code=$(curl -sS --max-time 120 -o odpoved.txt -w '%{http_code}' -H "X-Cron-Key: $CRON_KEY" "$URL/cron?task=migrate&key=$CRON_KEY" || true)
           cat odpoved.txt; echo
+          if grep -q "challenges.cloudflare.com" odpoved.txt 2>/dev/null; then echo "::error::Požadavek zablokoval Cloudflare (kontrola robotů) – klíč je v pořádku. Subdoménu eshop.bkludgerovice.cz je potřeba v Cloudflare přepnout na „DNS only“ (viz docs/registrace/provoz.md, kap. A8)."; exit 1; fi
           if [ "$code" = "403" ]; then echo "::error::Server odmítl klíč: secret ${{ inputs.cil == 'produkce' && 'REG_CRON_KEY' || 'REG_TEST_CRON_KEY' }} v GitHubu nesouhlasí s cron_key v config.php na serveru."; exit 1; fi
           if [ "$code" != "200" ]; then echo "::error::Server vrátil chybu $code."; exit 1; fi
       - name: Kontrola po nasazení

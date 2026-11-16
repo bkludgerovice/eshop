@@ -74,6 +74,12 @@ V administraci → Přehled musí za pár minut zmizet červené upozornění �
 
 ---
 
+### A8. Cloudflare (DNS domény bkludgerovice.cz)
+Doména bkludgerovice.cz je v Cloudflare (spravuje M. Zapletalová). Ochrana proti robotům blokovala požadavky z GitHubu (nasazení, zálohy) a z plánovaných úloh Wedosu na eshop.bkludgerovice.cz (stránka „Just a moment…“).
+Řešení: v Cloudflare → DNS → záznam **eshop** přepnout na **DNS only** (šedý mráček). Předtím ověřit, že Wedos má pro eshop.bkludgerovice.cz platný HTTPS certifikát (Webhosting → behotoulani.cz → HTTPS). Hlavní web a pobl.cz zůstávají za Cloudflare.
+
+---
+
 ## B. Založení závodu (Zimní běh)
 
 Administrace: `https://eshop.bkludgerovice.cz/registrace/admin`
