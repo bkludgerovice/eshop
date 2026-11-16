@@ -1,0 +1,49 @@
+name: Registrace – denní záloha mimo hosting
+# Každý den stáhne poslední šifrovanou zálohu z Wedosu, uloží ji do archivu GitHub Actions (90 dní)
+# a ověří, že jde obnovit do prázdné databáze.
+on:
+  schedule:
+    - cron: '17 4 * * *'
+  workflow_dispatch:
+jobs:
+  zaloha:
+    runs-on: ubuntu-latest
+    services:
+      mariadb:
+        image: mariadb:10.11
+        env:
+          MARIADB_ROOT_PASSWORD: root
+          MARIADB_DATABASE: restore_test
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized" --health-interval=5s --health-timeout=5s --health-retries=20
+    steps:
+      - name: Stažení zálohy
+        run: |
+          curl -fsS --max-time 120 -H "X-Cron-Key: ${{ secrets.REG_CRON_KEY }}" -o zaloha.sql.gz.enc \
+            "https://eshop.bkludgerovice.cz/registrace/cron?task=latest-backup"
+          ls -l zaloha.sql.gz.enc
+      - uses: actions/upload-artifact@v4
+        with:
+          name: registrace-zaloha-${{ github.run_number }}
+          path: zaloha.sql.gz.enc
+          retention-days: 90
+      - uses: actions/checkout@v4
+        with:
+          path: src
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+          extensions: pdo_mysql, sodium, zlib
+          coverage: none
+      - name: Test obnovy
+        working-directory: src/registrace
+        run: |
+          composer install --no-dev --no-interaction --no-progress
+          php cli/restore-check.php ../../zaloha.sql.gz.enc
+        env:
+          BKL_BACKUP_PASSPHRASE: ${{ secrets.REG_BACKUP_PASSPHRASE }}
+          BKL_DB_HOST: 127.0.0.1
+          BKL_DB_NAME: restore_test
+          BKL_DB_USER: root
+          BKL_DB_PASSWORD: root

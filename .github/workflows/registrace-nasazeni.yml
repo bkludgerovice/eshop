@@ -1,0 +1,74 @@
+name: Registrace – nasazení (ručně)
+# Spouští se jen ručně: GitHub → Actions → „Registrace – nasazení (ručně)“ → Run workflow.
+# Nejdřív nasaďte na „test“, vyzkoušejte a teprve potom „produkce“ (vyžaduje napsat NASADIT).
+on:
+  workflow_dispatch:
+    inputs:
+      cil:
+        description: 'Kam nasadit'
+        type: choice
+        options: [test, produkce]
+        default: test
+      potvrzeni:
+        description: 'Pro produkci napište NASADIT'
+        required: false
+      prvni:
+        description: 'První nasazení (na serveru ještě nic není – přeskočí zálohu)'
+        type: boolean
+        default: false
+concurrency: registrace-nasazeni
+jobs:
+  testy:
+    uses: ./.github/workflows/registrace-testy.yml
+
+  nasazeni:
+    needs: testy
+    runs-on: ubuntu-latest
+    env:
+      SLOZKA: ${{ inputs.cil == 'produkce' && 'registrace' || 'registrace-test' }}
+      URL: ${{ inputs.cil == 'produkce' && 'https://eshop.bkludgerovice.cz/registrace' || 'https://eshop.bkludgerovice.cz/registrace-test' }}
+      CRON_KEY: ${{ inputs.cil == 'produkce' && secrets.REG_CRON_KEY || secrets.REG_TEST_CRON_KEY }}
+    steps:
+      - name: Kontrola potvrzení
+        if: inputs.cil == 'produkce' && inputs.potvrzeni != 'NASADIT'
+        run: echo "Pro nasazení do produkce napište do pole potvrzení NASADIT." && exit 1
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+          coverage: none
+      - name: Knihovny bez vývojových nástrojů
+        working-directory: registrace
+        run: composer install --no-dev --optimize-autoloader --no-interaction --no-progress
+      - name: Záloha databáze před nasazením
+        if: ${{ !inputs.prvni }}
+        run: |
+          curl -fsS --max-time 120 -H "X-Cron-Key: $CRON_KEY" "$URL/cron?task=backup" && echo
+      - name: Nahrání na Wedos (jen složka registrací)
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./registrace/
+          server-dir: ./${{ env.SLOZKA }}/
+          exclude: |
+            **/.git*
+            **/.git*/**
+            tests/**
+            phpunit.xml
+            cli/devserver.php
+            config/config.php
+            storage/backups/**
+            storage/mail/**
+            storage/cache/**
+            storage/logs/**
+      - name: Databázové změny (migrace)
+        run: |
+          curl -fsS --max-time 120 -H "X-Cron-Key: $CRON_KEY" "$URL/cron?task=migrate" && echo
+      - name: Kontrola po nasazení
+        run: |
+          set -e
+          curl -fsS --max-time 30 "$URL/health" && echo
+          curl -fsS -o /dev/null --max-time 30 https://eshop.bkludgerovice.cz/ && echo "e-shop OK"
+          curl -fsS -o /dev/null --max-time 30 https://eshop.bkludgerovice.cz/ples/ && echo "ples OK"
