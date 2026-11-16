@@ -63,7 +63,21 @@ Doporučuji postavit registrace jako PHP aplikaci s databází MariaDB přímo n
 
 **Závěry:**
 - **WordPress bkludgerovice.cz i pobl.cz běží na tomtéž webhostingu** (aliasy + databáze `bklud`, `pobl`). Registrace by s nimi sdílely výkon (PHP procesy). Chyba v kódu registrací hlavní web neshodí, ale **přetížení nebo výpadek celého webhostingu by zasáhl všechny weby najednou**.
-- Pro Zimní běh (150 lidí) stačí **NoLimit**. Před Ludgeřovickou 15 doporučuji přejít na **NoLimit Extra** (+ cca 90 Kč/měs.) nebo registrace přesunout na samostatný webhosting a udělat zátěžový test.
+- Pro Zimní běh (150 lidí) stačí **NoLimit**. Před Ludgeřovickou 15 doporučuji přejít na **Extra** nebo registrace přesunout na samostatný webhosting a udělat zátěžový test.
+
+**Ceník variant (administrace Wedos, 16. 11. 2026, bez DPH při platbě na 1 rok):**
+| | LowCost | **NoLimit (aktivní)** | Extra |
+|---|---|---|---|
+| Cena | 55 Kč/měs. | **100 Kč/měs.** (121 Kč s DPH) | 200 Kč/měs. (242 Kč s DPH) |
+| Aliasy | 0 | 3 | 3 |
+| Prostor na disku / e-maily / DB | 10 GB / 5 GB / 1 GB | ∞ / 10 GB / **2 GB** | ∞ / 10 GB / 5 GB |
+| PHP vláken | 7 | **25** | 30 |
+| Zálohy Wedos | týdně | **týdně** | denně |
+
+- LowCost nepřichází v úvahu (0 aliasů – běží tu bkludgerovice.cz a pobl.cz).
+- NoLimit má **limit 3 aliasy** – ověřit, kolik je jich obsazeno (bkludgerovice.cz, pobl.cz + další). Registrace na adrese `eshop.bkludgerovice.cz/registrace/` žádný nový alias nepotřebují.
+- Zálohy Wedos jsou u NoLimit jen **týdně** → vlastní denní záloha mimo hosting (kap. 7) je nutná.
+- Extra stojí o 100 Kč/měs. bez DPH víc; i s CRON+ zůstane celkový náklad pod hranicí 300 Kč/měs. (ověřit cenu CRON+).
 - Databáze registrací bude malá (jednotky MB). Celková velikost databází je 968 MB – ověřit limit tarifu (NoLimit cca 2 GB), rezerva je dostatečná.
 - Zbývá ověřit: **CRON+** (v přehledu doplňkových služeb webhostingu, níže na stránce), verze PHP (odkaz „Interní adresa webu“ / nastavení PHP).
 - FTP účet `w286112_eshop` (zřízen 5. 11. 2026) je **ověřeně omezen na adresář `/www/domains/eshop.bkludgerovice.cz`** → nahrávání z GitHubu nemůže přepsat WordPress klubu ani pobl.cz. ✔ Tento adresář je zároveň kořenem webu e-shopu, takže tajné soubory registrací musí být chráněné `.htaccess` (Require all denied) – mimo webový kořen se tímto účtem nedostaneme.
@@ -94,7 +108,7 @@ Zdroje: kb.vedos.cz (webhosting-cron, webhosting-php, webhosting-databaze), blog
 5. Pošlete mi: název tarifu, verzi PHP, zda máte CRON+, a zda je eshop.bkludgerovice.cz na stejném webhostingu jako bkludgerovice.cz (WordPress).
 
 ### 3.3 Doporučení hostingu
-- **Doporučuji Wedos** (NoLimit, nebo NoLimit Extra, pokud je WordPress na stejném hostingu – oddělí se výkon) + **CRON+**. Odhad: NoLimit ~40–80 Kč/měs., Extra +90 Kč/měs., CRON+ desítky Kč/měs. (ověřit ceník). Celkem výrazně pod 300 Kč.
+- **Doporučuji Wedos** (NoLimit, nebo NoLimit Extra, pokud je WordPress na stejném hostingu – oddělí se výkon) + **CRON+**. Ceny dle administrace: NoLimit 100 Kč/měs. bez DPH (už placeno do 26. 7. 2027), Extra 200 Kč/měs. bez DPH, CRON+ ověřit. Pro Zimní běh je dodatečný náklad jen CRON+.
 - Pokud na webhostingu běží i WordPress, výpadek registrací WordPress neshodí (jiná aplikace), ale **zátěž sdílí** – proto Extra nebo oddělený webhosting pro subdoménu `eshop`.
 - **Záložní varianta Render** (~300 Kč/měs.: webová služba ~7 USD + PostgreSQL ~7 USD) – stabilnější provoz aplikací, ale vlastní nasazení a vyšší cena. Railway podobně (platba podle spotřeby, ~5–15 USD). Aplikaci navrhnu tak, aby šla později přesunout (standardní PHP + SQL, žádné zvláštnosti Wedos v kódu).
 - Pokud CRON+ nebude k dispozici: Fio párování spouštět zvenku (GitHub Actions plánovač nebo cron-job.org volá chráněnou adresu každých 5–10 minut). Funguje, ale je méně spolehlivé → jen jako záloha.
