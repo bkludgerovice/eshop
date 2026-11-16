@@ -165,11 +165,16 @@ final class PublicController
     {
         try {
             $this->app->db->value('SELECT 1');
-            $last = $this->app->db->value("SELECT MAX(started_at) FROM job_runs WHERE job = 'cron'");
-            return Response::json(['ok' => true, 'db' => true, 'last_cron' => $last]);
         } catch (\Throwable) {
             return Response::json(['ok' => false, 'db' => false], 503);
         }
+        $pending = (new \Bkl\Migrator($this->app->db, $this->app->root . '/migrations'))->pending();
+        if ($pending) {
+            // Databáze je dostupná, jen chybí tabulky / změny – spustí je krok „migrace“ v nasazení.
+            return Response::json(['ok' => false, 'db' => true, 'schema' => false, 'pending' => count($pending)], 503);
+        }
+        $last = $this->app->db->value("SELECT MAX(started_at) FROM job_runs WHERE job = 'cron'");
+        return Response::json(['ok' => true, 'db' => true, 'schema' => true, 'last_cron' => $last]);
     }
 
     public function notFound(Request $req): Response
