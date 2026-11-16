@@ -1,7 +1,7 @@
 # BKL Registrace 3.0 – Fáze 1: technická analýza
 
 Stav k 16. 11. 2026 · podklady: zadání „BKL Registrace 3.0“ (16. 10. 2026) a „Doplněk k zadání“ (15. 11. 2026). Kde se liší, platí doplněk.
-Doplněno 16. 11. 2026 o rozbor kódu Apps Scriptů e-shopu a plesu.
+Doplněno 16. 11. 2026 o rozbor kódu Apps Scriptů e-shopu a plesu, zjištěný hosting a odpovědi předsedy.
 Tento dokument je jen analýza – nic se neprogramuje ani nenasazuje.
 
 ## 1. Shrnutí v jednom odstavci
@@ -40,6 +40,16 @@ Doporučuji postavit registrace jako PHP aplikaci s databází MariaDB přímo n
 - Žádné testovací prostředí neexistuje.
 
 ## 3. Hosting – co potřebujeme od Wedos
+
+### 3.0 Zjištěný stav hostingu (z e-mailů od Wedosu, 16. 11. 2026)
+- **Kde:** Wedos, webhosting pojmenovaný podle domény **behotoulani.cz**, zákaznické číslo webhostingu **286112**, FTP server `286112.w12.wedos.net`. Zřízen 21. 10. 2021 (přesun od jiného poskytovatele).
+- **Kdo platí:** služba je vedená a fakturovaná na **Ing. David Bíbrlík (osobní IČ)**, ne na klub. Přihlášení: client.wedos.com, účet s e-mailem david.bibrlik@gmail.com.
+- **Cena:** 2024/25 = 999,96 Kč bez DPH za rok (cca 100 Kč měsíčně s DPH) → pravděpodobně tarif **NoLimit**. Přesný název a datum expirace ověřit v administraci (poslední nalezená výzva k platbě končí 26. 7. 2025, služba ale běží dál – prodloužení se zřejmě platí jinak, např. ze zálohového účtu).
+- **Co na něm už běží:** více webů najednou – WordPress behotoulani.cz, e-shop a ples (FTP účet `w286112_eshop` zřízený 5. 11. 2026 – ten pravděpodobně používá GitHub pro nahrávání), další FTP účty a několik databází MariaDB na serveru `md123.wedos.net` (názvy `d286112_…`).
+- **Hlavní web bkludgerovice.cz (WordPress):** DNS se 11. 11. 2026 přepínaly mezi Cloudflare a Wedosem (spravuje M. Zapletalová). Z e-mailů nejde jednoznačně říct, zda WordPress klubu běží na tomtéž webhostingu → ověřit.
+- **Nezjištěno:** zda je aktivní doplněk CRON+ (v e-mailech není), aktuální verze PHP (při zřízení 7.4; Wedos od té doby PHP aktualizoval – ověřit, že web používá PHP 8.x).
+- **Bezpečnost:** v e-mailech od Wedosu jsou FTP hesla v čitelné podobě. Doporučuji pro nahrávání z GitHubu používat samostatný FTP účet omezený jen na složku e-shopu a hesla starších účtů změnit.
+- **Doporučení:** registrace postavit na tomto webhostingu (nová databáze + CRON+). Protože jde o klubový provoz na osobní službě předsedy, zvážit převod fakturace na klub (Wedos to umí, kb.wedos.com „Změna fakturačních údajů služeb“) a dát přístup do administrace druhé osobě z klubu.
 
 ### 3.1 Co Wedos webhosting umí (veřejné informace, ověřit u vašeho tarifu)
 | Potřeba | Wedos webhosting | Poznámka |
@@ -92,7 +102,7 @@ Zdroje: kb.vedos.cz (webhosting-cron, webhosting-php, webhosting-databaze), blog
 - **Ve formuláři nepoužívat cookies** (Safari je v iframe blokuje) – vše se odešle jedním požadavkem s ochranným tokenem.
 - **Kapacita a souběh:** registrace se zapisuje v databázové transakci se zamčením řádku akce (`SELECT … FOR UPDATE`) → poslední místo nemůže získat dva lidé. Místo je „rezervované“ od odeslání formuláře (stav Čeká na platbu) do zaplacení / zrušení po splatnosti.
 - **Plánované úlohy (CRON+):** každých 5 min `fio-sync` (stažení plateb, párování) + odeslání fronty e-mailů; 1× denně záloha, upomínky/zrušení po splatnosti, denní souhrn správci; kontrola „úloha neběžela > 1 h“ → okamžité upozornění.
-- **E-maily:** odesílatel `registrace@bkludgerovice.cz` přes **Google Workspace** – stejný poskytovatel jako e-shop a ples (ověřeno z kódu). Doporučené provedení: `registrace@` jako **alias** existujícího účtu (bez další licence) nastavený v Gmailu jako „Odesílat poštu jako“; aplikace na Wedosu posílá přes SMTP Google (`smtp.gmail.com`, port 587) s **heslem aplikace** (vyžaduje dvoufázové ověření účtu; heslo jen v `secrets.php`). Alternativa bez SMTP: malý Apps Script „pošťák“, kterému aplikace předá e-mail k odeslání (přesně jako ples, ale přidává závislost na Googlu). E-maily odcházejí přes servery Google → **pravděpodobně žádná změna DNS** (ověřit, že SPF obsahuje `include:_spf.google.com` a je zapnutý DKIM ve Workspace). Limit Gmailu ~2 000 zpráv/den – na 400 závodníků stačí. Sender.net zůstává jen pro newslettery (doplněk). Každý e-mail jde přes frontu s historií a ochranou proti duplicitě; kopie potvrzení každé registrace jde do schránky registrace@ (druhá stopa).
+- **E-maily:** schránka `registrace@bkludgerovice.cz` **existuje** (potvrzeno 16. 11. 2026). Pokud je to samostatná schránka Workspace, aplikace se přihlásí přímo jako registrace@ (SMTP Google + heslo aplikace); pokud je to alias, přihlásí se účet, ke kterému alias patří. Odesílatel `registrace@bkludgerovice.cz` přes **Google Workspace** – stejný poskytovatel jako e-shop a ples (ověřeno z kódu). Doporučené provedení: `registrace@` jako **alias** existujícího účtu (bez další licence) nastavený v Gmailu jako „Odesílat poštu jako“; aplikace na Wedosu posílá přes SMTP Google (`smtp.gmail.com`, port 587) s **heslem aplikace** (vyžaduje dvoufázové ověření účtu; heslo jen v `secrets.php`). Alternativa bez SMTP: malý Apps Script „pošťák“, kterému aplikace předá e-mail k odeslání (přesně jako ples, ale přidává závislost na Googlu). E-maily odcházejí přes servery Google → **pravděpodobně žádná změna DNS** (ověřit, že SPF obsahuje `include:_spf.google.com` a je zapnutý DKIM ve Workspace). Limit Gmailu ~2 000 zpráv/den – na 400 závodníků stačí. Sender.net zůstává jen pro newslettery (doplněk). Každý e-mail jde přes frontu s historií a ochranou proti duplicitě; kopie potvrzení každé registrace jde do schránky registrace@ (druhá stopa).
 - **Platba převodem:** jeden QR kód (SPD) na klubový účet Fio, částka = startovné + produkty − sleva + charita; v databázi rozepsáno odděleně.
 - **Fio párování:** stejně jako ples – stahovat pohyby za posledních ~30 dní (`/periods/`, ne „od poslední zarážky“) a ukládat podle jedinečného ID pohybu → opakované stažení nic nezduplikuje a po výpadku se nic neztratí. **Samostatný token jen pro registrace** (jen pro sledování účtu): Fio povoluje 1 dotaz / 30 s **na token** a ples se svým tokenem dotazuje každých 5 minut – sdílený token by způsoboval odmítnuté dotazy (chyba 409) v obou systémech. V internetovém bankovnictví Fio lze k jednomu účtu vytvořit více tokenů. Párování podle VS a částky: přesně → Zaplaceno; méně → Částečně (ke kontrole); více → Přeplaceno (ke kontrole); neznámý VS → Nespárováno (ruční párování v administraci). Platby plesu/e-shopu na stejném účtu systém ignoruje podle rozsahu VS.
 - **Variabilní symbol:** ples používá `2701001`, `2701002`, … (prefix `2701`). Registrace proto **nesmí začínat na `2701`** (ples by je hlásil jako neznámé platby). Návrh: 9 číslic `8` + rok (2) + číslo akce (2) + pořadí (4), např. Zimní běh 2027 = akce 01 → `827010001`, `827010002`, … Registrace ignorují platby mimo svůj rozsah (`8…`), ples ignoruje platby mimo `2701…` → systémy se nepletou.
@@ -130,7 +140,7 @@ Značky: **V1** = implementuje se pro Zimní běh, **V2** = připraveno ve struk
 | Tabulka | Hlavní sloupce | Etapa |
 |---|---|---|
 | `orders` | event_id, **VS (unikátní)**, tajný odkaz (hash), kontaktní jméno/e-mail/telefon, jazyk, měna, kanál (online / na místě / admin), **snímek bankovního účtu a IBAN** (změna účtu akce nemění staré objednávky), částky zvlášť: startovné, produkty, sleva, charita, celkem; splatnost, stav platby (nezaplaceno / částečně / zaplaceno / přeplaceno / vráceno / ke kontrole), vytvořeno, IP | V1 |
-| `registrations` | order_id, event_id, race_id, jméno, příjmení, datum narození (ročník), pohlaví, e-mail, telefon, klub/město, země, jméno rodiče (nezletilí), **zmrazená cena**: hladina, základ, věková sleva, kupon, sleva kuponu, výsledná cena; kategorie, **startovní číslo (unikátní v rámci akce)**, stav (rozpracovaná / čeká na platbu / potvrzená / zrušená / expirovaná / ke kontrole), prezence (čas, kým), tajný odkaz pro závodníka (hash), převedeno z (id), anonymizováno (čas) | V1 |
+| `registrations` | order_id, event_id, race_id, jméno, příjmení, **datum narození (celé, povinné – rozhodnutí 16. 11. 2026; ročník se z něj počítá)**, pohlaví, e-mail, telefon, klub/město, země, jméno rodiče (nezletilí), **zmrazená cena**: hladina, základ, věková sleva, kupon, sleva kuponu, výsledná cena; kategorie, **startovní číslo (unikátní v rámci akce)**, stav (rozpracovaná / čeká na platbu / potvrzená / zrušená / expirovaná / ke kontrole), prezence (čas, kým), tajný odkaz pro závodníka (hash), převedeno z (id), anonymizováno (čas) | V1 |
 | `registration_field_values` | registration_id, field_id, hodnota / option_id, příplatek | V1 |
 | `consents` | registration_id, typ (podmínky, osobní údaje + veřejná startovka, souhlas rodiče), verze textu, čas, IP | V1 |
 | `payments` | bank_account_id, zdroj (`fio`, `hotovost`, `rucne`, `stripe` V2), **externí ID (unikátní – ochrana proti duplicitám)**, částka, měna, VS, protiúčet, zpráva, datum přijetí, surová data, order_id (nebo prázdné = nespárováno), stav párování | V1 |
@@ -157,6 +167,13 @@ Značky: **V1** = implementuje se pro Zimní běh, **V2** = připraveno ve struk
 4. Výsledek se uloží do registrace i objednávky a později se nemění změnou ceníku.
 
 ### 5.6 Rozdělení na etapy
+**Předseda chce spustit co nejdříve.** Aby šlo 1a spustit kolem 30. 11., potřebuji od klubu do cca 23. 11.:
+1. v client.wedos.com ověřit tarif a verzi PHP, objednat **CRON+**, založit **novou databázi** pro registrace,
+2. v internetovém bankovnictví Fio vytvořit **nový token „jen sledování“** pro účet 2502518589 (vloží se až na server, ne do chatu),
+3. pro registrace@ zapnout dvoufázové ověření a vytvořit **heslo aplikace** (vloží se až na server),
+4. údaje Zimního běhu: ceny/hladiny, produkty (jídlo), částky příspěvku, splatnost, texty podmínek a GDPR (nebo schválit můj návrh),
+5. **výslovné schválení zahájení implementace.**
+
 **Verze 1a – spuštění registrací (cíl ~30. 11. 2026):** akce, tratě, společná kapacita, formulář (jeden i více závodníků), cenové hladiny, věkové slevy, kupony (členský + generování partnerských), vlastní pole, charita, souhlasy + rodič, QR platba, potvrzovací e-mail s QR pro prezenci, Fio párování, veřejná startovka, základní administrace (seznam, detail, úpravy, ruční platba, zrušení), export do Excelu, denní záloha mimo hosting, testy.
 **Verze 1b – před závodem (cíl ~10. 1. 2027):** upomínky a zrušení po splatnosti, obnova po pozdní platbě, převody registrací, vrácení peněz, dashboard + denní souhrn, šablony exportů, startovka pro časomíru s kategoriemi, prezence (PIN, QR, našeptávač), startovní čísla na místě i hromadně, registrace na místě s hotovostí, výmaz údajů na žádost, upozornění na chyby. Generálka prezence nanečisto před 24. 1.
 **Verze 2 – Ludgeřovická 15:** Stripe (karta, BLIK, Apple/Google Pay) s webhooky, PLN a EUR, metody podle země, polština a angličtina, hromadné e-maily, více účtů pro charitu, role po akcích, statistiky, zátěžový test 400+ současných registrací.
@@ -215,11 +232,13 @@ Značky: **V1** = implementuje se pro Zimní běh, **V2** = připraveno ve struk
 
 **Stávající systém**
 4. ~~Kód Apps Scriptů~~ – dodán a prověřen (kap. 2).
-5. Existuje schránka/alias `registrace@bkludgerovice.cz` v Google Workspace? Souhlasíte, aby byl alias vašeho účtu a e-maily šly přes SMTP Google s heslem aplikace (máte zapnuté dvoufázové ověření)? Kdo spravuje DNS?
-6. Mají registrace chodit na stejný účet 2502518589/2010 jako ples? Můžete pro registrace vytvořit **druhý Fio token jen pro sledování** (token plesu ponechat jen plesu)?
+5. ~~registrace@~~ – **existuje**. Zbývá: je to samostatná schránka, nebo alias? Kdo spravuje DNS (Cloudflare / Wedos)?
+6. ~~Účet a token~~ – **stejný účet 2502518589/2010, nový token pro registrace lze vytvořit.**
+6a. Kde běží WordPress bkludgerovice.cz (stejný webhosting 286112, nebo jinde)? Má k administraci Wedos přístup ještě někdo další?
+6b. Má webhosting zůstat na vašem osobním IČ, nebo převést fakturaci na klub?
 
 **Pravidla závodu**
-7. Formulář: ptát se na celé **datum narození**, nebo jen na **ročník**? (Věk i slevy se počítají podle ročníku.)
+7. ~~Datum narození~~ – **celé datum narození** (slevy a kategorie dál podle ročníku, nezletilost = méně než 18 let ke dni závodu).
 8. Věková sleva do 15 let = ročník 2012 a mladší pro rok 2027? A od 60 let = ročník 1967 a starší?
 9. Vztahuje se sleva (věková/kupon) i na doplňkové produkty (jídlo), nebo jen na startovné?
 10. Cenové hladiny Zimního běhu: kromě 170 Kč bude jiná cena po 31. 12. nebo na místě?
