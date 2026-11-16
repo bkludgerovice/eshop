@@ -66,7 +66,7 @@ Doporučuji postavit registrace jako PHP aplikaci s databází MariaDB přímo n
 - Pro Zimní běh (150 lidí) stačí **NoLimit**. Před Ludgeřovickou 15 doporučuji přejít na **NoLimit Extra** (+ cca 90 Kč/měs.) nebo registrace přesunout na samostatný webhosting a udělat zátěžový test.
 - Databáze registrací bude malá (jednotky MB). Celková velikost databází je 968 MB – ověřit limit tarifu (NoLimit cca 2 GB), rezerva je dostatečná.
 - Zbývá ověřit: **CRON+** (v přehledu doplňkových služeb webhostingu, níže na stránce), verze PHP (odkaz „Interní adresa webu“ / nastavení PHP).
-- FTP účet `w286112_eshop` by měl mít přístup **jen do složky e-shopu** (nastavení adresáře u účtu), aby nahrávání z GitHubu nemohlo přepsat WordPress klubu.
+- FTP účet `w286112_eshop` (zřízen 5. 11. 2026) je **ověřeně omezen na adresář `/www/domains/eshop.bkludgerovice.cz`** → nahrávání z GitHubu nemůže přepsat WordPress klubu ani pobl.cz. ✔ Tento adresář je zároveň kořenem webu e-shopu, takže tajné soubory registrací musí být chráněné `.htaccess` (Require all denied) – mimo webový kořen se tímto účtem nedostaneme.
 
 ### 3.1 Co Wedos webhosting umí (veřejné informace, ověřit u vašeho tarifu)
 | Potřeba | Wedos webhosting | Poznámka |
@@ -251,7 +251,7 @@ Značky: **V1** = implementuje se pro Zimní běh, **V2** = připraveno ve struk
 4. ~~Kód Apps Scriptů~~ – dodán a prověřen (kap. 2).
 5. ~~registrace@~~ – **existuje**. Zbývá: je to samostatná schránka, nebo alias? Kdo spravuje DNS (Cloudflare / Wedos)?
 6. ~~Účet a token~~ – **stejný účet 2502518589/2010, nový token pro registrace lze vytvořit.**
-6a. ~~Kde běží WordPress~~ – **na stejném webhostingu 286112** (alias bkludgerovice.cz). Má k administraci Wedos přístup ještě někdo další? Kam vede FTP účet `w286112_eshop` (do které složky)?
+6a. ~~Kde běží WordPress~~ – **na stejném webhostingu 286112** (alias bkludgerovice.cz). Má k administraci Wedos přístup ještě někdo další? ~~FTP účet e-shopu~~ – vede jen do `/www/domains/eshop.bkludgerovice.cz`.
 6b. Má webhosting zůstat na vašem osobním IČ, nebo převést fakturaci na klub?
 
 **Pravidla závodu**
