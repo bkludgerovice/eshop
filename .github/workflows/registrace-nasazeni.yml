@@ -87,7 +87,16 @@ jobs:
           if [ "$code" != "200" ]; then echo "::error::Server vrátil chybu $code."; exit 1; fi
       - name: Kontrola po nasazení
         run: |
-          set -e
-          curl -fsS --max-time 30 "$URL/health" && echo
-          curl -fsS -o /dev/null --max-time 30 https://eshop.bkludgerovice.cz/ && echo "e-shop OK"
-          curl -fsS -o /dev/null --max-time 30 https://eshop.bkludgerovice.cz/ples/ && echo "ples OK"
+          # Registrace: přes chráněnou adresu /cron (jediná výjimka v Cloudflare)
+          code=$(curl -sS --max-time 30 -o odpoved.txt -w '%{http_code}' -H "X-Cron-Key: $CRON_KEY" "$URL/cron?task=status&key=$CRON_KEY" || true)
+          cat odpoved.txt; echo
+          if [ "$code" != "200" ]; then echo "::error::Registrace po nasazení neodpovídají (HTTP $code)."; exit 1; fi
+          if ! grep -q '"pending":\[\]' odpoved.txt; then echo "::error::Databázové změny nebyly provedeny."; exit 1; fi
+          echo "registrace OK"
+          # E-shop a ples: běžné stránky za Cloudflare – při kontrole robotů jen upozornění
+          for u in https://eshop.bkludgerovice.cz/ https://eshop.bkludgerovice.cz/ples/; do
+            c=$(curl -sS -o stranka.html -w '%{http_code}' --max-time 30 "$u" || true)
+            if [ "$c" = "200" ]; then echo "$u OK";
+            elif grep -q "challenges.cloudflare.com" stranka.html 2>/dev/null; then echo "::warning::$u nelze ověřit automaticky (Cloudflare kontrola robotů) – zkontrolujte v prohlížeči.";
+            else echo "::error::$u vrací chybu $c"; exit 1; fi
+          done

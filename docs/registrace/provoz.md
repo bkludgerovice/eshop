@@ -74,9 +74,17 @@ V administraci → Přehled musí za pár minut zmizet červené upozornění �
 
 ---
 
-### A8. Cloudflare (DNS domény bkludgerovice.cz)
-Doména bkludgerovice.cz je v Cloudflare (spravuje M. Zapletalová). Ochrana proti robotům blokovala požadavky z GitHubu (nasazení, zálohy) a z plánovaných úloh Wedosu na eshop.bkludgerovice.cz (stránka „Just a moment…“).
-Řešení: v Cloudflare → DNS → záznam **eshop** přepnout na **DNS only** (šedý mráček). Předtím ověřit, že Wedos má pro eshop.bkludgerovice.cz platný HTTPS certifikát (Webhosting → behotoulani.cz → HTTPS). Hlavní web a pobl.cz zůstávají za Cloudflare.
+### A8. Cloudflare (doména bkludgerovice.cz – spravuje M. Zapletalová)
+Cloudflare zůstává **zapnutý**. Jeho kontrola robotů ale blokovala automatické úlohy (stránka „Just a moment…“). Na server nechodí AI ani nikdo cizí – jde o dvě automatiky klubu, které volají **jedinou adresu** chráněnou tajným klíčem (bez klíče vrací 403 a nic neudělá):
+- **Wedos CRON+** každých 5 minut: platby z Fio, e-maily, upomínky, noční záloha, ranní souhrn,
+- **GitHub Actions**: jen když předseda ručně spustí nasazení (záloha, databázové změny, kontrola) a 1× denně stažení šifrované zálohy mimo hosting.
+
+**Nastavení v Cloudflare** (jednorázové, trvalé): Security → WAF → Custom rules → Create rule
+- Název: `BKL registrace – plánované úlohy`
+- Field **URI Path**, operator **is in**, hodnoty `/registrace/cron` a `/registrace-test/cron`
+- Action **Skip** → zaškrtnout vše nabízené (All remaining custom rules, Rate limiting, Managed rules, Super Bot Fight Mode, Security Level, Browser Integrity Check) → Deploy.
+
+Pokud je na zóně zapnutý **Bot Fight Mode** (bezplatný tarif), výjimkou ho obejít nejde – pak ho vypnout, nebo (záložně) přepnout jen záznam `eshop` na „DNS only“ (předtím ověřit platný HTTPS certifikát na Wedosu).
 
 ---
 
