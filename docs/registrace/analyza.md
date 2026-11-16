@@ -44,12 +44,29 @@ Doporučuji postavit registrace jako PHP aplikaci s databází MariaDB přímo n
 ### 3.0 Zjištěný stav hostingu (z e-mailů od Wedosu, 16. 11. 2026)
 - **Kde:** Wedos, webhosting pojmenovaný podle domény **behotoulani.cz**, zákaznické číslo webhostingu **286112**, FTP server `286112.w12.wedos.net`. Zřízen 21. 10. 2021 (přesun od jiného poskytovatele).
 - **Kdo platí:** služba je vedená a fakturovaná na **Ing. David Bíbrlík (osobní IČ)**, ne na klub. Přihlášení: client.wedos.com (účet předsedy).
-- **Cena:** 2024/25 = 999,96 Kč bez DPH za rok (cca 100 Kč měsíčně s DPH) → pravděpodobně tarif **NoLimit**. Přesný název a datum expirace ověřit v administraci (poslední nalezená výzva k platbě končí 26. 7. 2025, služba ale běží dál – prodloužení se zřejmě platí jinak, např. ze zálohového účtu).
+- **Cena:** 2024/25 = 999,96 Kč bez DPH za rok (cca 100 Kč měsíčně s DPH), tarif **NoLimit**, předplaceno do 26. 7. 2027 (viz 3.0a).
 - **Co na něm už běží:** více webů najednou – WordPress behotoulani.cz, e-shop a ples (FTP účet `w286112_eshop` zřízený 5. 11. 2026 – ten pravděpodobně používá GitHub pro nahrávání), další FTP účty a několik databází MariaDB na serveru `md123.wedos.net` (názvy `d286112_…`).
 - **Hlavní web bkludgerovice.cz (WordPress):** DNS se 11. 11. 2026 přepínaly mezi Cloudflare a Wedosem (spravuje M. Zapletalová). Z e-mailů nejde jednoznačně říct, zda WordPress klubu běží na tomtéž webhostingu → ověřit.
 - **Nezjištěno:** zda je aktivní doplněk CRON+ (v e-mailech není), aktuální verze PHP (při zřízení 7.4; Wedos od té doby PHP aktualizoval – ověřit, že web používá PHP 8.x).
 - **Bezpečnost:** v e-mailech od Wedosu jsou FTP hesla v čitelné podobě. Doporučuji pro nahrávání z GitHubu používat samostatný FTP účet omezený jen na složku e-shopu a hesla starších účtů změnit.
 - **Doporučení:** registrace postavit na tomto webhostingu (nová databáze + CRON+). Protože jde o klubový provoz na osobní službě předsedy, zvážit převod fakturace na klub (Wedos to umí, kb.wedos.com „Změna fakturačních údajů služeb“) a dát přístup do administrace druhé osobě z klubu.
+
+### 3.0a Ověřeno z administrace Wedos (snímek obrazovky od předsedy, 16. 11. 2026)
+| Údaj | Hodnota |
+|---|---|
+| Varianta | **NoLimit** (lze „změnit“ na NoLimit Extra) |
+| Stav / expirace | aktivní, **do 26. 7. 2027** |
+| Velikost webu / e-mailů / databází | 13 537 MB / 90 MB / **968 MB** |
+| Databáze MariaDB | `d286112_9e20mg` (118 MB), `d286112_bklud` (465 MB), `d286112_pobl` (385 MB) |
+| FTP účty | hlavní `w286112` + `w286112_dbibrlik`, `w286112_eshop`, `w286112_martina`, `w286112_vysbkl` |
+| Aliasy | **bkludgerovice.cz**, **pobl.cz** (a další) |
+
+**Závěry:**
+- **WordPress bkludgerovice.cz i pobl.cz běží na tomtéž webhostingu** (aliasy + databáze `bklud`, `pobl`). Registrace by s nimi sdílely výkon (PHP procesy). Chyba v kódu registrací hlavní web neshodí, ale **přetížení nebo výpadek celého webhostingu by zasáhl všechny weby najednou**.
+- Pro Zimní běh (150 lidí) stačí **NoLimit**. Před Ludgeřovickou 15 doporučuji přejít na **NoLimit Extra** (+ cca 90 Kč/měs.) nebo registrace přesunout na samostatný webhosting a udělat zátěžový test.
+- Databáze registrací bude malá (jednotky MB). Celková velikost databází je 968 MB – ověřit limit tarifu (NoLimit cca 2 GB), rezerva je dostatečná.
+- Zbývá ověřit: **CRON+** (v přehledu doplňkových služeb webhostingu, níže na stránce), verze PHP (odkaz „Interní adresa webu“ / nastavení PHP).
+- FTP účet `w286112_eshop` by měl mít přístup **jen do složky e-shopu** (nastavení adresáře u účtu), aby nahrávání z GitHubu nemohlo přepsat WordPress klubu.
 
 ### 3.1 Co Wedos webhosting umí (veřejné informace, ověřit u vašeho tarifu)
 | Potřeba | Wedos webhosting | Poznámka |
@@ -226,7 +243,7 @@ Značky: **V1** = implementuje se pro Zimní běh, **V2** = připraveno ve struk
 
 ## 10. Nejasnosti a otázky pro předsedu
 **Hosting a přístupy**
-1. Jaký je tarif Wedos (návod v kap. 3.2)? Je WordPress bkludgerovice.cz na stejném webhostingu jako eshop.bkludgerovice.cz?
+1. ~~Tarif~~ – **NoLimit, do 26. 7. 2027**. Zbývá: je aktivní / dostupný CRON+ a jaká je verze PHP?
 2. Souhlasíte s dokoupením CRON+ (a případně NoLimit Extra), pokud vyjde pod 300 Kč/měs.?
 3. Je repozitář `bkludgerovice/eshop` soukromý? (Zadání požaduje soukromý repozitář.)
 
@@ -234,7 +251,7 @@ Značky: **V1** = implementuje se pro Zimní běh, **V2** = připraveno ve struk
 4. ~~Kód Apps Scriptů~~ – dodán a prověřen (kap. 2).
 5. ~~registrace@~~ – **existuje**. Zbývá: je to samostatná schránka, nebo alias? Kdo spravuje DNS (Cloudflare / Wedos)?
 6. ~~Účet a token~~ – **stejný účet 2502518589/2010, nový token pro registrace lze vytvořit.**
-6a. Kde běží WordPress bkludgerovice.cz (stejný webhosting 286112, nebo jinde)? Má k administraci Wedos přístup ještě někdo další?
+6a. ~~Kde běží WordPress~~ – **na stejném webhostingu 286112** (alias bkludgerovice.cz). Má k administraci Wedos přístup ještě někdo další? Kam vede FTP účet `w286112_eshop` (do které složky)?
 6b. Má webhosting zůstat na vašem osobním IČ, nebo převést fakturaci na klub?
 
 **Pravidla závodu**
