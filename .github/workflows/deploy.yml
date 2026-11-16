@@ -20,3 +20,6 @@ jobs:
             **/.git*/**
             .github/**
             README.md
+            docs/**
+            registrace/**
+            registrace-test/**
