@@ -11,6 +11,7 @@ declare(strict_types=1);
  *   php cli/tool.php decrypt soubor.enc > zaloha.sql   – rozšifruje zálohu (zeptá se na heslo)
  *   php cli/tool.php restore soubor.enc NAZEV_DB --potvrzuji – obnoví zálohu do ZADANÉ databáze
  *   php cli/tool.php demo                        – vytvoří ukázkovou akci (jen pro vývoj/test)
+ *   php cli/tool.php seed-test 300               – zátěžový test: N registrací + platby (NIKDY v produkci)
  */
 
 require __DIR__ . '/../vendor/autoload.php';
@@ -138,6 +139,62 @@ switch ($cmd) {
         $db->insert('form_field_options', ['field_id' => $f, 'label' => Util::json(['cs' => 'Gulášová polévka']), 'surcharge' => 6000, 'sort_order' => 1]);
         $db->insert('form_field_options', ['field_id' => $f, 'label' => Util::json(['cs' => 'Vegetariánská polévka']), 'surcharge' => 6000, 'sort_order' => 2]);
         out("Ukázková akce vytvořena (id $id): " . $app->config->baseUrl() . '/zimni-beh-2027');
+        break;
+
+    case 'seed-test':
+        $config = Config::load($root . '/config/config.php');
+        if ($config->isProduction()) {
+            out('Zátěžový test nelze spustit v produkci (env = prod).');
+            exit(1);
+        }
+        $n = max(1, min(5000, (int) ($argv[2] ?? 300)));
+        // e-maily se při testu neposílají a po testu se zruší
+        $app = App::boot($root, $config->with(['mail' => ['transport' => 'null']]));
+        $db = $app->db;
+        $slug = 'zatezovy-test-' . date('His');
+        $eid = $db->insert('events', [
+            'slug' => $slug, 'vs_code' => 99, 'name' => Util::json(['cs' => 'ZÁTĚŽOVÝ TEST ' . date('j. n. H:i')]),
+            'starts_at' => (date('Y') + 1) . '-01-24 10:00:00', 'status' => 'otevreno', 'capacity' => $n + 10, 'public_list_enabled' => 0,
+        ]);
+        $race = $db->insert('races', ['event_id' => $eid, 'name' => Util::json(['cs' => '10 km'])]);
+        $db->insert('price_tiers', ['event_id' => $eid, 'amount' => 17000]);
+        $db->insert('age_discounts', ['event_id' => $eid, 'name' => 'Děti', 'age_max' => 15, 'percent' => 50]);
+        $ev = $app->events->byId($eid);
+        $t0 = microtime(true);
+        $orders = [];
+        $done = 0;
+        while ($done < $n) {
+            $k = min(random_int(1, 3), $n - $done);
+            $runners = [];
+            for ($i = 0; $i < $k; $i++) {
+                $no = $done + $i + 1;
+                $runners[] = ['race_id' => $race, 'first_name' => 'Test', 'last_name' => 'Zatez' . $no, 'birth_date' => random_int(1950, 2015) . '-0' . random_int(1, 9) . '-1' . random_int(0, 9),
+                    'gender' => $no % 2 ? 'M' : 'Z', 'email' => "zatez$no@example.invalid", 'phone' => '600000000', 'club' => 'Test', 'country' => 'CZ',
+                    'guardian_name' => 'Rodič Test', 'guardian_consent' => '1'];
+            }
+            $orders[] = $app->registrations->register($ev, ['runners' => $runners, 'consent_terms' => '1', 'consent_gdpr' => '1'], '127.0.0.1');
+            $done += $k;
+        }
+        $tReg = microtime(true) - $t0;
+        $t1 = microtime(true);
+        foreach ($orders as $i => $o) {
+            $app->payments->recordBankTransaction(['id' => 'zatez-' . $slug . '-' . $i, 'amount' => (int) $o['amount_total'], 'currency' => 'CZK', 'vs' => $o['vs'],
+                'date' => date('Y-m-d') . ' 00:00:00', 'account' => '', 'name' => 'Test', 'message' => '', 'raw' => []], 1);
+        }
+        $tPay = microtime(true) - $t1;
+        $t2 = microtime(true);
+        $app->payments->recordBankTransaction(['id' => 'zatez-' . $slug . '-dup', 'amount' => (int) $orders[0]['amount_total'], 'currency' => 'CZK', 'vs' => $orders[0]['vs'],
+            'date' => date('Y-m-d') . ' 00:00:00', 'account' => '', 'name' => 'Test', 'message' => '', 'raw' => []], 1);
+        $tFio = microtime(true) - $t2;
+        $confirmed = (int) $db->value("SELECT COUNT(*) FROM registrations WHERE event_id = ? AND status = 'potvrzena'", [$eid]);
+        $db->run("UPDATE email_queue SET status = 'zruseno' WHERE order_id IN (SELECT id FROM orders WHERE event_id = ?)", [$eid]);
+        $db->update('events', ['status' => 'archivovana'], ['id' => $eid]);
+        out(sprintf("Zátěžový test (akce %s, archivována):
+  registrací: %d v %d objednávkách za %.1f s (%.0f ms / objednávka)
+  spárování plateb: %.1f s (%.1f ms / platba)
+  potvrzeno: %d z %d
+  e-maily z testu zrušeny (neodešlou se)",
+            $slug, $n, count($orders), $tReg, 1000 * $tReg / count($orders), $tPay, 1000 * $tPay / count($orders), $confirmed, $n));
         break;
 
     default:
