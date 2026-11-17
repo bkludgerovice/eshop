@@ -38,7 +38,9 @@ final class CronController
                 return Response::json(['ok' => true, 'result' => (new Backup($this->app))->run('rucni')]);
             case 'migrate':
                 $pending = $m->pending();
-                $backup = $pending ? (new Backup($this->app))->run('pred-migraci') : null;
+                // Prázdnou databázi (první nasazení) není co zálohovat.
+                $hasTables = (int) $this->app->db->value('SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE()') > 0;
+                $backup = $pending && $hasTables ? (new Backup($this->app))->run('pred-migraci') : null;
                 $done = $m->migrate();
                 if ($done) {
                     $this->app->log->audit('system', null, 'migrace', null, ['applied' => $done], 'nasazeni');
