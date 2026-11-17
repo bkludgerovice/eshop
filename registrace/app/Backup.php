@@ -33,7 +33,11 @@ final class Backup
         $name = 'bkl-registrace-' . date('Ymd-His') . '-' . $reason . '.sql.gz.enc';
         file_put_contents($this->dir() . '/' . $name, $data);
         $this->prune();
-        $counts = $this->app->db->one('SELECT (SELECT COUNT(*) FROM registrations) regs, (SELECT COUNT(*) FROM orders) orders, (SELECT COUNT(*) FROM payments) payments');
+        try {
+            $counts = $this->app->db->one('SELECT (SELECT COUNT(*) FROM registrations) regs, (SELECT COUNT(*) FROM orders) orders, (SELECT COUNT(*) FROM payments) payments');
+        } catch (\PDOException) {
+            $counts = ['regs' => 0, 'orders' => 0, 'payments' => 0]; // databáze ještě bez tabulek
+        }
         $to = $this->app->config->str('backup.email');
         if ($to !== '' && $reason === 'denni') {
             $this->app->mailer->sendNow(
