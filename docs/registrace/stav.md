@@ -22,6 +22,11 @@ Větev: `claude/happy-newton-6erwk1`. Kód: `registrace/`. Nic není nasazeno na
 - Hosting: PHP na Wedosu se nemění (předseda nechce zasahovat; platí i pro WordPress) – je tam 8.5 a `display_errors` zapnuto. Aplikace si výpis chyb vypíná sama (`index.php`, `App::installErrorHandler`: deprecated jen do logu, ostatní varování → výjimka → obecná chybová stránka). Composer `platform-check` vypnut.
 - Nasazení: `.github/workflows/registrace-nasazeni.yml` (ručně, test/produkce, záloha → FTP → migrace → kontrola). `deploy.yml` e-shopu nyní vynechává `docs/`, `registrace/`, `registrace-test/`.
 
+### Stav nasazení (17. 11. 2026)
+- `main` obsahuje 1a; první nasazení na test nahrálo soubory, migrace selhala na Cloudflare challenge → proxy pro eshop vypnuta (DNS only). Další krok: nasazení test znovu, setup admina.
+- Správkyně hostingu (M. Zapletalová): staré DB a CRONy nemazat ani do nich nic nepřidávat; nedoporučuje vlastní systém (bezpečnost, citlivé údaje, Fio token) – rizika a opatření v provoz.md kap. G. Doporučeno nezávislé posouzení bezpečnosti.
+- Zátěžový test lokálně: 300 registrací / 149 objednávek – 3,4 s, spárování 1,9 s (`cli/tool.php seed-test`).
+
 ### Zbývá na 1b (do ~10. 1. 2027)
 - Prezence na místě: PIN přístup pomocníků, QR čtečka (kód `BKL:<checkin_code>`), našeptávač podle 3 písmen příjmení, přidělení čísla z hromádky s kontrolou duplicity (DB už má unikátní `(event_id, bib)`), registrace na místě s hotovostí (kanál `na_miste`, cenová hladina na místě už funguje).
 - Hromadné přidělení startovních čísel (řady `bib_from/bib_to` u tratí jsou v DB).

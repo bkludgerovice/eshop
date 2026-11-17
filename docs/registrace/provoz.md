@@ -74,6 +74,13 @@ V administraci → Přehled musí za pár minut zmizet červené upozornění �
 
 ---
 
+### A8. Cloudflare (doména bkludgerovice.cz – spravuje M. Zapletalová)
+**Stav od 17. 11. 2026:** pro subdoménu eshop.bkludgerovice.cz je proxy Cloudflare **vypnutá** (DNS only). Hlavní web a pobl.cz zůstávají za Cloudflare. Žádná další výjimka není potřeba.
+Důvod: kontrola robotů v Cloudflare blokovala automatické úlohy klubu (Wedos CRON – platby Fio, e-maily, zálohy; GitHub Actions – nasazení a stažení záloh). Ty volají jen adresu `/registrace/cron`, chráněnou tajným klíčem.
+**Dohoda se správkyní hostingu:** stávající databáze a CRON úlohy na webhostingu (pro bkludgerovice.cz a pobl.cz) se **nemažou a nic se do nich nepřidává**. Registrace mají vlastní nové databáze a vlastní CRON úlohu.
+
+---
+
 ## B. Založení závodu (Zimní běh)
 
 Administrace: `https://eshop.bkludgerovice.cz/registrace/admin`
@@ -158,3 +165,21 @@ E-shop a ples se nasazují dál jako dosud (změna v `main` → automaticky). Je
 | Chyba po aktualizaci | Nasaďte předchozí verzi (kap. E4). |
 
 Diagnostiku pro Claude Code: Administrace → Systém (chyby, úlohy, e-maily) – hesla ani tokeny se do záznamů neukládají.
+
+
+---
+
+## G. Bezpečnost a citlivé údaje
+
+Upozornění správkyně hostingu (17. 11. 2026) jsou oprávněná. Shrnutí rizik a opatření:
+
+| Riziko | Kdo / jak | Opatření |
+|---|---|---|
+| **Fio token** umožňuje číst pohyby na klubovém účtu (ne platit) | kdokoli, kdo se dostane k `registrace/config/config.php` – tedy kdo má FTP přístup k webhostingu (účty w286112, w286112_eshop a další), přístup do client.wedos.com nebo k serveru | token typu „jen sledování“, **samostatný** pro registrace (ples má vlastní); není v GitHubu ani v chatu; při podezření token ve Fio okamžitě zrušit a vytvořit nový; omezit počet lidí s FTP přístupem a měnit FTP hesla (staré jsou v e-mailech Wedosu v čitelné podobě) |
+| **Osobní údaje závodníků** (jméno, datum narození, e-mail, telefon, u dětí jméno rodiče) | databáze na Wedosu; zálohy | přístup jen přes administraci s heslem (zámek po 5 chybách) a přes FTP/DB hesla; zálohy šifrované heslem uloženým mimo server; výmaz údajů na žádost v administraci; veřejná startovka jen jméno, ročník, klub, trať |
+| **Heslo k e-mailu registrace@** (heslo aplikace) | config.php | jen pro odesílání; lze kdykoli zrušit v účtu Google |
+| **Chyba v aplikaci** (tvůrce není programátor, kód psala AI) | – | 39 automatických testů; doporučeno **nezávislé posouzení bezpečnosti** webovým vývojářem před ostrým spuštěním; nejdřív menší akce (Zimní běh ~150 lidí) |
+| **Zátěž sdíleného hostingu** (CRON každých 5 min, nápor při otevření registrací) | webhosting sdílený s webem klubu a pobl.cz | CRON je lehký (1 dotaz na Fio, max. 60 e-mailů); zátěžový test 300 registrací: uložení 23 ms / objednávka, spárování 13 ms / platba (lokálně, MariaDB 10.11); před Ludgeřovickou 15 zátěžový test na testovacím prostředí a zvážit tarif Extra |
+| **Výpadek / nefunkčnost** | – | záložní plán: mít připravenou externí registrační službu; denní souhrn s CSV všech registrací e-mailem; kopie každého potvrzení v registrace@ |
+
+Zátěžový test (jen vývojové / testovací prostředí, nikdy produkce): `php cli/tool.php seed-test 300`.
